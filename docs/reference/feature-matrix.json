@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "updated": "2026-11-02",
-  "release": "0.14.1",
+  "updated": "2026-11-04",
+  "release": "0.14.2",
   "status": "security patch locally accepted; one development-only minimatch advisory remains open; Linux/commercial inference deferred",
   "modules": {
     "android": {

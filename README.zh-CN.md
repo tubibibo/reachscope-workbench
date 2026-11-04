@@ -8,6 +8,11 @@
 Current scope and verification: [project status](docs/releases/project-status.md) ·
 [feature matrix](docs/reference/feature-matrix.json) · [AI/Web experiment](docs/modules/web/ai-advisory.md).
 
+> 本仓库从 0.14.1 起以单条提交公开；此前在私有副本中开发，[CHANGELOG.md](CHANGELOG.md)
+> 记录了那段历史，更早的版本从未在此发布。源码注释中可能出现未随仓库发布的内部规划编号。
+
+**0.14.2 发布卫生：** 版本号、CI 配置与文档更新，无功能变化；见 [CHANGELOG.md](CHANGELOG.md)。
+
 **0.14.1 安全加固：** [专项安全测试日志](docs/security/security-test-log-2026-11-02.md)。
 修复导入资料歧义、敏感字段/未知标记保护、AI 草稿目的地与摘要授权绑定、
 案例并发决策和子进程诊断预算；扫描告警、确认问题、硬化项和剩余依赖风险分别记录。

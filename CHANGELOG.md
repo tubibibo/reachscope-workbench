@@ -1,5 +1,22 @@
 # Changelog
 
+## Workbench 0.14.2 — 2026-11-04
+
+- Add a version-consistency test locking the pyproject version, the Python
+  package `__version__`, the frontend package version and the OpenAPI contract
+  version together; any drift now fails the unit suite.
+- Upgrade the CI actions to their current majors (checkout, setup-python,
+  setup-node and upload-artifact to v7) so the workflows keep running after the
+  Node 20 runner deprecation.
+- Pin the CI runners explicitly to ubuntu-24.04 and windows-2025 (browser:
+  ubuntu-24.04) ahead of the ubuntu-latest image migration to Ubuntu 26.
+- Restrict CI triggers to branch pushes, pull requests and manual dispatch;
+  tag pushes no longer re-run the full check set.
+- Remove the English README's "What it is not" section; the same boundaries
+  remain documented in SECURITY.md and README.zh-CN.md.
+- State at the top of both READMEs that the repository is a one-time public
+  export of a privately developed history; no earlier version was published here.
+
 ## Unreleased — repository organization
 
 - Group documentation by audience and responsibility, with lowercase filenames,

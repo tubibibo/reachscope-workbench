@@ -2,7 +2,7 @@
 
 > 公开源码说明：文中的历史提交号属于公开导出前的开发记录；本副本不携带该私有 Git 历史。提交号仅用于来源标识，不代表新仓库中存在对应提交。
 
-Updated: 2026-11-02. Current source and live local service: **0.14.1**.
+Updated: 2026-11-04. Current source and live local service: **0.14.2**.
 Workspace schema remains **7**. Local entry: `http://127.0.0.1:8765/`.
 
 ## Security patch

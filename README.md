@@ -5,8 +5,13 @@
 **A local, single-user workbench that turns security findings into evidence,
 remediation, and a verified close.**
 
-> Status: 0.14.1, maintained by one person. Bug reports welcome; feature requests
+> Status: 0.14.2, maintained by one person. Bug reports welcome; feature requests
 > are usually declined. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+> This repository begins at 0.14.1 in a single commit. The project was developed
+> privately before publication; [CHANGELOG.md](CHANGELOG.md) records that history,
+> and no earlier version was published here. Source comments may reference
+> internal planning identifiers that are not part of this repository.
 
 English | [简体中文](README.zh-CN.md)
 
@@ -100,22 +105,6 @@ in front of a class.
 | Cloud configuration | AWS Terraform Plan / IAM / supported export JSON | Network, permission and storage rules with field-level evidence and implementation guidance |
 | Host defense | SSH/Nginx config JSON, Nginx access logs, SSH auth logs | 7 baseline checks, 3 bounded log rules, redacted events, reinforcement guidance, config re-test |
 | Shared workbench | Any of the above | Job progress, logs, cancellation, history, evidence query, JSON / HTML / CSV export |
-
-## What it is not
-
-- **Not a vulnerability scanner.** Leads, imported findings and rule suggestions
-  are never presented as confirmed vulnerabilities.
-- **Not an attack tool.** No crawling, no brute forcing, no exploit or APK
-  execution. Probing sends a GET to the addresses you list, and private targets
-  stay disabled unless you opt in.
-- **Not a hosted platform.** Loopback only, one user, no accounts or isolation.
-- **The rule tables are a reading aid** — checkpoints a human reviews, not steps
-  this application performs.
-- **It does not read your cloud account.** The cloud module parses offline JSON;
-  a static configuration proves nothing about deployed reachability.
-- **It claims no measured detection rate.** Nothing here is validated against a
-  realistic corpus, and a missing observation is not evidence that an asset is
-  safe.
 
 ## Documentation
 
