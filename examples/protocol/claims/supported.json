@@ -1,0 +1,11 @@
+{
+  "schema_version": "0.1",
+  "kind": "reachability",
+  "entry": {"kind": "component", "name": "com.example.app.MainActivity"},
+  "sink": {"kind": "file"},
+  "asserted_steps": [
+    {"sink": "webview"},
+    {"sink": "bridge_method"},
+    {"sink": "file"}
+  ]
+}

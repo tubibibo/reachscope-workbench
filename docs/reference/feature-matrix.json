@@ -1,0 +1,383 @@
+{
+  "schema_version": "1.0",
+  "updated": "2026-11-02",
+  "release": "0.14.1",
+  "status": "security patch locally accepted; one development-only minimatch advisory remains open; Linux/commercial inference deferred",
+  "modules": {
+    "android": {
+      "asset_inputs": [
+        "apk",
+        "demo"
+      ],
+      "checks": [
+        "manifest",
+        "code_paths"
+      ],
+      "red_blue": true,
+      "ai_advisory": false,
+      "configuration_review": {
+        "version": 1,
+        "controls": [
+          "android.debuggable",
+          "android.test_only",
+          "android.backup",
+          "android.cleartext",
+          "android.trust_anchors",
+          "android.debug_overrides",
+          "android.exported_components",
+          "android.deeplinks"
+        ],
+        "runtime_execution": false
+      },
+      "deterministic_implementation_guides": true,
+      "comparable_configuration_retests": true
+    },
+    "web": {
+      "asset_inputs": [
+        "probe",
+        "import",
+        "demo"
+      ],
+      "checks": [
+        "http",
+        "headers",
+        "page",
+        "fingerprints"
+      ],
+      "red_blue": true,
+      "ai_advisory": "real saved website probe only",
+      "deterministic_implementation_guides": true
+    },
+    "cloud": {
+      "asset_inputs": [
+        "probe",
+        "import",
+        "demo"
+      ],
+      "checks": [
+        "network",
+        "iam",
+        "storage"
+      ],
+      "red_blue": true,
+      "ai_advisory": false,
+      "local_input_coverage_preview": true,
+      "deterministic_implementation_guides": true,
+      "external_http_deterministic_guides": true
+    },
+    "host": {
+      "asset_inputs": [
+        "baseline",
+        "access_log",
+        "auth_log",
+        "demo"
+      ],
+      "checks": [
+        "ssh",
+        "nginx",
+        "web_logs",
+        "auth_logs"
+      ],
+      "baseline_rules": 7,
+      "limited_log_rules": 3,
+      "local_input_preview": true,
+      "red_blue": true,
+      "ai_advisory": false,
+      "live_collection": false,
+      "automated_response": false,
+      "log_absence_can_close_case": false,
+      "collector": {
+        "export_schema": "reachscope-host/2",
+        "standalone_stdlib_zipapp": true,
+        "default": "plan only; explicit digest-bound execution",
+        "commands": [
+          "fixed sshd -T",
+          "fixed nginx -T"
+        ],
+        "projection": "reachscope-minimal/1",
+        "metadata_verified": false,
+        "automatic_upload": false,
+        "configuration_mutation": false,
+        "runtime_state_verified": false
+      }
+    }
+  },
+  "common": [
+    "immutable saved assets and job snapshots",
+    "evidence-backed cases and CAS audit history",
+    "visible real/imported/synthetic origin",
+    "manual retest and human resolution",
+    "actionable onboarding and persistent module routes",
+    "read-only startup diagnostics",
+    "bounded pagination and chronological retest eligibility",
+    "opt-in managed loopback teaching workflow with durable provenance",
+    "deterministic evidence-linked manual implementation guides",
+    "OpenAPI generated request-contract drift gate",
+    "isolated browser CI job (remote runner unexecuted)"
+  ],
+  "ai_contract": {
+    "provider": "OpenAI-compatible Chat Completions only",
+    "credential_storage": "backend session memory or REACHSCOPE_AI_API_KEY",
+    "known_ids_only": true,
+    "real_provider_verified": false,
+    "automated_execution": false,
+    "automated_case_closure": false,
+    "presets": [
+      "openai_compatible",
+      "deepseek",
+      "custom"
+    ],
+    "reasoning_default": "omitted on wire",
+    "token_budget": 4096,
+    "diagnostics": "credential-free draft GET; no inference/auth/billing validation",
+    "credential_scope": "provider and normalized base URL",
+    "layered_diagnostics": [
+      "credential-free draft GET",
+      "consented saved-profile-hash bound GET /models",
+      "separately authorized inference"
+    ]
+  },
+  "verification": {
+    "workbench_baseline_0_8": {
+      "passed": 1182,
+      "skipped": 1,
+      "coverage": 92.25
+    },
+    "current_0_9": {
+      "passed": 1281,
+      "skipped": 1,
+      "coverage": 91.65
+    },
+    "commercial_provider": "operator explicitly deferred real inference this iteration; live saved-profile GET /models failed connection_failed before HTTP",
+    "current_0_10": {
+      "status": "final source and installed-wheel checks passed; commercial inference unverified",
+      "passed": 1340,
+      "skipped": 1,
+      "warnings": 1,
+      "coverage": 91.99,
+      "strict_mypy_files": 105,
+      "doctor_regressions": 10,
+      "onboarding_browser": {
+        "passed": 12,
+        "errors": 0,
+        "inference_calls": 0
+      },
+      "ai_protocol_browser": {
+        "passed": 8,
+        "errors": 0,
+        "fixture_inference_calls": 1,
+        "commercial_provider": false
+      },
+      "fresh_installed_wheel_smoke": true,
+      "real_provider_diagnostic": {
+        "status": "unreachable",
+        "error_code": "connection_failed",
+        "stage": "connect",
+        "inference_sent": false
+      }
+    },
+    "current_0_11": {
+      "passed": 1422,
+      "skipped": 1,
+      "warnings": 1,
+      "coverage": 92.14,
+      "strict_mypy_files": 107,
+      "browser_groups": {
+        "onboarding": 12,
+        "local_teaching": 15,
+        "ai_protocol": 8,
+        "errors": 0,
+        "commercial_provider": false
+      },
+      "request_contract_drift_positive_and_negative": true,
+      "ci_remote_run": false,
+      "fresh_installed_wheel": true,
+      "packaged_source_files_matched": 134
+    },
+    "release_0_12": {
+      "status": "passed",
+      "passed": 1614,
+      "skipped": 1,
+      "warnings": 1,
+      "coverage": 92.31,
+      "strict_mypy_files": 111,
+      "pytest_seconds": 158.63,
+      "browser_groups": {
+        "onboarding": 12,
+        "teaching_guides_models": 15,
+        "android": 9,
+        "web_cloud": 8,
+        "ai_protocol": 8
+      },
+      "browser_total": 52,
+      "frontend_type_format_build": "passed",
+      "request_contract_drift": "passed",
+      "installed_wheel": "passed",
+      "packaged_source_files_matched": 138,
+      "compiled_synthetic_apk_static_remediation": "passed; final backend parity verified",
+      "workspace_schema": 6,
+      "commercial_inference_verified": false,
+      "remote_ci_executed": false
+    },
+    "release_0_13": {
+      "status": "passed; commercial inference and remote CI remain unverified",
+      "passed": 1835,
+      "skipped": 1,
+      "warnings": 1,
+      "coverage": 92.54,
+      "strict_mypy_files": 118,
+      "pytest_seconds": 194.27,
+      "browser_groups": {
+        "onboarding": 12,
+        "teaching_guides_models": 15,
+        "android": 9,
+        "web_cloud": 8,
+        "blue": 9,
+        "ai_protocol": 8
+      },
+      "browser_total": 61,
+      "browser_aggregate_timing": "before final Nginx evidence retention fix",
+      "affected_blue_browser_rerun_after_final_fix": 9,
+      "live_saved_result_desktop_mobile": "passed; no browser errors or horizontal overflow",
+      "frontend_type_format_build": "passed",
+      "request_contract_drift": "passed",
+      "installed_wheel": "passed fresh external environment",
+      "packaged_runtime_files_matched": 145,
+      "packaged_python_sources": 118,
+      "wheel_bytes": 571545,
+      "wheel_sha256": "ca8f2bb02f3d351b30e03d5cdeab8e76fafba4c874382c429a521b7a566e0807",
+      "workspace_schema": 7,
+      "existing_workspace_upgrade": {
+        "from": 6,
+        "to": 7,
+        "integrity": "ok",
+        "unchanged_original_non_schema_tables": 16,
+        "unchanged_original_artifact_files": 139,
+        "private_backup": "database and jobs/uploads copied and hash verified"
+      },
+      "paid_inference_requests": 0,
+      "commercial_inference_verified": false,
+      "remote_ci_executed": false
+    },
+    "release_0_14": {
+      "status": "local source/browser/package passed; required real Linux gate not_executed",
+      "passed": 1978,
+      "skipped": 5,
+      "warnings": 1,
+      "coverage": 92.33,
+      "strict_mypy_files": 126,
+      "pytest_seconds": 179.88,
+      "browser_groups": {
+        "onboarding": 12,
+        "teaching_guides_models": 15,
+        "android": 9,
+        "web_cloud": 8,
+        "blue": 9,
+        "host_journey": 8,
+        "ai_protocol": 8
+      },
+      "browser_total": 69,
+      "frontend_type_format_build": "passed",
+      "request_contract_drift": "passed",
+      "fresh_external_installed_wheel": "passed",
+      "installed_pip_check": "passed",
+      "packaged_runtime_files_matched": 154,
+      "packaged_python_sources": 126,
+      "wheel_bytes": 590993,
+      "wheel_sha256": "243793183c8e5c8a3bbb07674f52e959562fa9af7896e64011cfccb540a2a3c8",
+      "workspace_schema": 7,
+      "live_workspace_version": "0.14.0",
+      "historical_tables_preserved": 17,
+      "historical_files_preserved": 139,
+      "actual_linux_acceptance": false,
+      "required_linux_gate_exit": 2,
+      "linux_specific_test_skips": 4,
+      "paid_inference_requests": 0,
+      "commercial_inference_verified": false,
+      "remote_ci_executed": false
+    },
+    "release_0_14_1": {
+      "status": "local source/browser/fresh-package passed; development advisory open",
+      "passed": 2033,
+      "skipped": 5,
+      "warnings": 1,
+      "coverage": 92.43,
+      "pytest_seconds": 188.35,
+      "strict_mypy_files": 129,
+      "new_python_security_regressions": 55,
+      "browser_groups": {
+        "onboarding": 12,
+        "teaching_guides_models": 15,
+        "android": 9,
+        "web_cloud": 8,
+        "blue": 9,
+        "host_journey": 8,
+        "frontend_security": 7,
+        "ai_protocol": 8
+      },
+      "browser_total": 76,
+      "frontend_type_format_build": "passed",
+      "request_contract_drift": "passed",
+      "fresh_external_installed_wheel": "passed",
+      "installed_pip_check": "passed",
+      "installed_security_checks": 5,
+      "packaged_runtime_files_matched": 157,
+      "packaged_python_sources": 129,
+      "wheel_bytes": 595201,
+      "wheel_sha256": "c991473699178f3e2d34d1903aa78b467f326dc526230c8715b85d2530fdeb58",
+      "security_test_log": "docs/security/security-test-log-2026-11-02.md",
+      "security_confirmed_fixed": 9,
+      "security_hardening": 2,
+      "python_runtime_audit_packages": 21,
+      "python_runtime_known_advisories": 0,
+      "npm_production_advisories": 0,
+      "npm_development_distinct_open_advisories": 1,
+      "npm_development_affected_nodes": 3,
+      "open_advisory": "GHSA-g3hv-75wg-m249",
+      "bandit_raw_alerts": 41,
+      "bandit_parse_errors": 0,
+      "bandit_raw_alerts_triaged": 41,
+      "workspace_schema": 7,
+      "live_workspace_version": "0.14.1",
+      "historical_tables_preserved": 17,
+      "historical_artifact_files_preserved": 139,
+      "backup_first_attempt_failed_long_path": true,
+      "complete_short_path_backup_verified": true,
+      "paid_inference_requests": 0,
+      "commercial_inference_verified": false,
+      "actual_linux_acceptance": false,
+      "remote_ci_executed": false
+    }
+  },
+  "workspace_schema": 7,
+  "repository_layout": {
+    "date": "2026-11-02",
+    "baseline_commit": "ceb525a",
+    "version_changed": false,
+    "schema_changed": false,
+    "tracked_path_moves": 95,
+    "documentation_moves": 60,
+    "tool_script_moves": 22,
+    "frontend_moves": 13,
+    "root_logs_archived": 27,
+    "private_state_migrated": false,
+    "source_tests": {
+      "passed": 2033,
+      "skipped": 5,
+      "coverage_percent": 92.44,
+      "seconds": 211.57
+    },
+    "browser_gate": {
+      "groups": 8,
+      "checks": 76,
+      "passed": true,
+      "initial_import_failure_retained": true
+    },
+    "naming_and_links_gate": "scripts/quality/check_repository.py",
+    "path_map": "config/path-migrations.json",
+    "review": "docs/releases/reviews/workbench-0-11-to-0-14.md",
+    "external_package_proof": "outputs/repository-layout-2026-11-02/package-acceptance.json",
+    "runtime_js_css_unchanged": true,
+    "baseline_visibility": "Private development history; not included in this public-source snapshot."
+  }
+}

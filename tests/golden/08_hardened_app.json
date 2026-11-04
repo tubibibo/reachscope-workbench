@@ -1,0 +1,42 @@
+{
+  "bridges": [],
+  "chains": [],
+  "components": [],
+  "counter_examples": [],
+  "deeplinks": [],
+  "findings": [],
+  "meta": {
+    "analyzed_at": "2026-01-01T00:00:00+00:00",
+    "apk_path": "",
+    "apk_sha256": "",
+    "apktool_version": null,
+    "min_sdk": null,
+    "package": "",
+    "target_sdk": null,
+    "tool_version": "0.4.1",
+    "version_code": "",
+    "version_name": "",
+    "warnings": []
+  },
+  "protection": {
+    "analyzable": false,
+    "detected": true,
+    "labels": [
+      "packer::dexguard",
+      "anti_vm"
+    ],
+    "tool": "apkid",
+    "warnings": []
+  },
+  "schema_version": "0.1",
+  "summary": {
+    "bridges": 0,
+    "chains": 0,
+    "components": 0,
+    "counter_examples": 0,
+    "deeplinks": 0,
+    "findings": 0,
+    "webviews": 0
+  },
+  "webviews": []
+}

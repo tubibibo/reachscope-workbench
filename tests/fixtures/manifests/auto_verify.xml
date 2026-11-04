@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.app">
+
+    <uses-sdk android:targetSdkVersion="33" />
+
+    <application>
+        <activity android:name=".VerifiedActivity" android:exported="true">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="open.example.com" android:path="/open" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".UnverifiedActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="open.example.com" android:path="/open" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

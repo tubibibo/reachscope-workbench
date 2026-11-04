@@ -1,0 +1,296 @@
+
+(() => {
+  "use strict";
+  const payload = document.getElementById("case-data");
+  const cases = JSON.parse(payload.textContent);
+  const byId = (id) => document.getElementById(id);
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = byId("trace-svg");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let active = cases[0];
+  let activeStep = 0;
+  let filter = "all";
+  let search = "";
+  let timer = null;
+  let copiedTimer = null;
+  let motionPaused = reduceMotion.matches;
+  let userMotionChoice = false;
+  let rawCode = "";
+  let points = [];
+
+  function text(id, value) { byId(id).textContent = value; }
+  function element(tag, className, value) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (value !== undefined) node.textContent = value;
+    return node;
+  }
+  function svgElement(tag, attrs, value) {
+    const node = document.createElementNS(svgNS, tag);
+    Object.entries(attrs).forEach(([name, attribute]) => node.setAttribute(name, String(attribute)));
+    if (value !== undefined) node.textContent = value;
+    return node;
+  }
+  function category(item) {
+    if (item.status.startsWith("SUPPORTED")) return "supported";
+    return item.status === "REFUTED" ? "refuted" : "unknown";
+  }
+  function stopPlayback() {
+    if (timer !== null) window.clearInterval(timer);
+    timer = null;
+    byId("play-trace").setAttribute("aria-pressed", "false");
+    byId("play-trace").textContent = active && active.has_path ? "▶ 逐步回放" : "— 未建立可回放路径";
+  }
+  function updateMotion() {
+    document.body.dataset.motion = motionPaused ? "paused" : "running";
+    byId("motion-toggle").setAttribute("aria-pressed", String(motionPaused));
+    byId("motion-toggle").setAttribute("aria-label", motionPaused ? "开启页面动画" : "暂停页面动画");
+    byId("motion-toggle").querySelector(".motion-label").textContent = motionPaused ? "动态暂停" : "动态开启";
+  }
+  byId("motion-toggle").addEventListener("click", () => {
+    userMotionChoice = true;
+    motionPaused = !motionPaused;
+    updateMotion();
+    if (motionPaused) stopPlayback();
+  });
+  reduceMotion.addEventListener("change", (event) => {
+    if (!userMotionChoice) { motionPaused = event.matches; updateMotion(); stopPlayback(); }
+  });
+  updateMotion();
+
+  function renderIndex() {
+    const visible = cases.filter((item) => (filter === "all" || category(item) === filter)
+      && (item.title + item.full_title + item.entry + item.status).toLocaleLowerCase().includes(search));
+    const list = byId("case-list");
+    list.replaceChildren();
+    visible.forEach((item) => {
+      const button = element("button", "case-option");
+      button.type = "button";
+      button.dataset.case = item.id;
+      button.setAttribute("aria-current", String(active && active.id === item.id));
+      const index = String(cases.indexOf(item) + 1).padStart(2, "0");
+      button.append(element("span", "case-num", index));
+      const name = element("span", "case-name", item.title);
+      name.append(element("span", "case-status", item.status));
+      button.append(name, element("span", "case-arrow", "↗"));
+      button.addEventListener("click", () => selectCase(item));
+      button.addEventListener("keydown", (event) => {
+        if (!["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight"].includes(event.key)) return;
+        event.preventDefault();
+        const direction = ["ArrowDown", "ArrowRight"].includes(event.key) ? 1 : -1;
+        const buttons = Array.from(list.querySelectorAll("button"));
+        buttons[(buttons.indexOf(button) + direction + buttons.length) % buttons.length].focus();
+      });
+      list.append(button);
+    });
+    text("visible-count", String(visible.length).padStart(2, "0"));
+    byId("no-results").hidden = visible.length > 0;
+    byId("workbench").hidden = visible.length === 0;
+    byId("empty-workbench").hidden = visible.length > 0;
+    if (visible.length === 0) stopPlayback();
+    else if (!active || !visible.includes(active)) selectCase(visible[0]);
+  }
+  function selectCase(item) {
+    stopPlayback();
+    active = item;
+    activeStep = 0;
+    byId("copy-code").textContent = "复制代码 ↗";
+    text("case-number", String(cases.indexOf(item) + 1).padStart(2, "0") + " / " + String(cases.length).padStart(2, "0"));
+    text("active-title", item.title);
+    text("active-note", item.note);
+    text("verdict-label", item.status);
+    byId("verdict-label").dataset.status = item.status;
+    byId("trace-link").href = "traces/" + encodeURIComponent(item.id) + ".json";
+    byId("claim-link").href = "claims/" + encodeURIComponent(item.id) + ".json";
+    text("chain-summary", item.chain_count + " CANDIDATE PATHS / " + item.finding_count + " RISK FINDINGS");
+    text("artifact-id", item.artifact_id);
+    byId("identity-panel").hidden = true;
+    byId("identity-toggle").setAttribute("aria-expanded", "false");
+    byId("identity-toggle").textContent = "证据身份 +";
+    text("path-kind", item.has_path ? (item.status === "REFUTED" ? "CODE PATH / 直接入口受限" : "CANDIDATE PATH / 候选路径") : "OBSERVATIONS / 未建立连通");
+    text("step-count", String(item.steps.length).padStart(2, "0") + (item.has_path ? " STEPS" : " POINTS"));
+    document.querySelectorAll("#case-list button").forEach((button) => button.setAttribute("aria-current", String(button.dataset.case === item.id)));
+    renderDiagram();
+    renderSteps();
+    setStep(0);
+    stopPlayback();
+    byId("play-trace").disabled = !item.has_path || item.steps.length < 2 || category(item) !== "supported";
+    byId("workbench").classList.remove("case-transition");
+    void byId("workbench").offsetWidth;
+    byId("workbench").classList.add("case-transition");
+  }
+  function renderDiagram() {
+    svg.replaceChildren();
+    svg.dataset.kind = active.has_path ? "candidate" : "observations";
+    points = active.steps.map((_, index) => ({
+      x: 76 + (index % 2) * 27,
+      y: active.steps.length === 1 ? 155 : 43 + index * Math.min(61, 244 / (active.steps.length - 1))
+    }));
+    svg.append(svgElement("path", {d: "M22 15H34M28 9V21M385 310H397M391 304V316", stroke: "#b5b6aa", fill: "none", "stroke-width": .8}));
+    svg.append(svgElement("text", {id: "diagram-number", x: 292, y: 105, fill: "#e6e3d8", "font-size": 82, "font-family": "Georgia,serif"}, "01"));
+    if (!points.length) {
+      svg.append(svgElement("rect", {x: 58, y: 93, width: 282, height: 137, fill: "none", stroke: "#bbb7a9", "stroke-dasharray": "4 6"}));
+      svg.append(svgElement("text", {x: 199, y: 145, "text-anchor": "middle", class: "diagram-caption"}, "IMPLEMENTATION NOT AVAILABLE"));
+      svg.append(svgElement("text", {x: 199, y: 177, "text-anchor": "middle", fill: "#777b70", "font-size": 13}, "入口已声明，实现尚不可见。"));
+      return;
+    }
+    if (active.has_path) {
+      for (let i = 1; i < points.length; i++) {
+        const from = points[i - 1], to = points[i], middle = (from.y + to.y) / 2;
+        svg.append(svgElement("path", {
+          d: `M${from.x} ${from.y} C${from.x} ${middle},${to.x} ${middle},${to.x} ${to.y}`,
+          class: "diagram-edge" + (active.status === "REFUTED" ? " permission-blocked" : ""),
+          "data-edge": i, "data-connected": String(category(active) === "supported")
+        }));
+      }
+      if (category(active) === "supported") svg.append(svgElement("circle", {id: "trace-packet", class: "trace-packet", cx: points[0].x, cy: points[0].y, r: 4}));
+    } else {
+      svg.append(svgElement("text", {x: 77, y: 310, class: "diagram-caption"}, "NO CONNECTED PATH IN THIS REPORT"));
+    }
+    points.forEach((point, index) => {
+      const step = active.steps[index];
+      const group = svgElement("g", {class: "diagram-node", role: "button", tabindex: 0, "data-node": index,
+        "aria-label": "查看步骤 " + (index + 1) + "：" + step.label, "aria-current": "false"});
+      group.append(svgElement("circle", {cx: point.x, cy: point.y, r: 17, class: "node-ring"}));
+      group.append(svgElement("text", {x: point.x, y: point.y + 3, "text-anchor": "middle", class: "node-index"}, String(index + 1).padStart(2, "0")));
+      group.append(svgElement("text", {x: 145, y: point.y - 2, class: "node-label"}, step.label.length > 32 ? step.label.slice(0, 29) + "…" : step.label));
+      group.append(svgElement("text", {x: 145, y: point.y + 14, class: "node-detail"}, active.has_path ? "CANDIDATE STEP / " + String(index + 1).padStart(2, "0") : "SOURCE OBSERVATION"));
+      group.addEventListener("click", () => { stopPlayback(); setStep(index); });
+      group.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); stopPlayback(); setStep(index); }
+        else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          event.preventDefault();
+          const next = Math.max(0, Math.min(points.length - 1, index + (event.key === "ArrowDown" ? 1 : -1)));
+          stopPlayback(); setStep(next); svg.querySelector(`[data-node="${next}"]`).focus();
+        }
+      });
+      svg.append(group);
+    });
+  }
+  function renderSteps() {
+    const list = byId("step-list");
+    list.replaceChildren();
+    active.steps.forEach((step, index) => {
+      const button = element("button", "", String(index + 1).padStart(2, "0"));
+      button.type = "button";
+      button.dataset.step = index;
+      button.setAttribute("aria-label", "查看 " + step.label);
+      button.addEventListener("click", () => { stopPlayback(); setStep(index); });
+      list.append(button);
+    });
+  }
+  function setStep(index) {
+    activeStep = Math.max(0, Math.min(active.steps.length - 1, index));
+    const step = active.steps[activeStep];
+    svg.querySelectorAll("[data-node]").forEach((node) => node.setAttribute("aria-current", Number(node.dataset.node) === activeStep ? "step" : "false"));
+    byId("step-list").querySelectorAll("button").forEach((node) => node.setAttribute("aria-current", Number(node.dataset.step) === activeStep ? "step" : "false"));
+    svg.querySelectorAll("[data-edge]").forEach((edge) => edge.classList.toggle("is-revealed", category(active) === "supported" && Number(edge.dataset.edge) <= activeStep));
+    const number = byId("diagram-number");
+    if (number) number.textContent = String(activeStep + 1).padStart(2, "0");
+    const packet = byId("trace-packet");
+    if (packet && points[activeStep]) { packet.setAttribute("cx", points[activeStep].x); packet.setAttribute("cy", points[activeStep].y); }
+    byId("prev-step").disabled = activeStep <= 0;
+    byId("next-step").disabled = !step || activeStep >= active.steps.length - 1;
+    text("step-position", step ? String(activeStep + 1).padStart(2, "0") + " / " + String(active.steps.length).padStart(2, "0") : "— / —");
+    const code = byId("code-content");
+    code.replaceChildren();
+    byId("code-scroll").scrollTop = 0;
+    rawCode = step ? step.code : "";
+    byId("copy-code").disabled = !rawCode;
+    if (!step) {
+      text("source-path", active.entry);
+      text("source-range", "IMPLEMENTATION NOT AVAILABLE");
+      text("code-completeness", "EVIDENCE UNAVAILABLE");
+      text("evidence-kind", "保留未知");
+      code.append(element("span", "code-empty", "这份索引中没有该入口的实现代码。\n缺少实现不能作为应用安全的依据。"));
+      return;
+    }
+    text("source-path", step.file || "代码位置不可用");
+    byId("source-path").title = step.file;
+    const lines = rawCode.split("\n");
+    text("source-range", `L ${step.start_line} — ${step.start_line + lines.length - 1} / SMALI`);
+    text("code-completeness", step.truncated ? "EXCERPT / 代码片段" : "SAVED METHOD / 已保存的方法");
+    text("evidence-kind", step.kind === "observation" ? "独立源码观察" : "候选步骤的代码依据");
+    lines.forEach((line, offset) => {
+      const lineNumber = step.start_line + offset;
+      const wrapper = element("span", "code-line" + (lineNumber === step.line ? " is-highlighted" : ""));
+      const number = element("span", "line-no", lineNumber);
+      number.setAttribute("aria-hidden", "true");
+      wrapper.append(number, element("span", "line-text", line || " "));
+      code.append(wrapper);
+    });
+    const highlight = code.querySelector(".is-highlighted");
+    if (highlight) byId("code-scroll").scrollTop = Math.max(0, highlight.offsetTop - code.offsetTop - 80);
+  }
+  byId("play-trace").addEventListener("click", () => {
+    if (timer !== null) { stopPlayback(); return; }
+    if (!active.has_path || active.steps.length < 2 || category(active) !== "supported") return;
+    if (activeStep >= active.steps.length - 1) setStep(0);
+    byId("play-trace").setAttribute("aria-pressed", "true");
+    byId("play-trace").textContent = "Ⅱ 暂停回放";
+    timer = window.setInterval(() => {
+      if (activeStep < active.steps.length - 1) setStep(activeStep + 1);
+      if (activeStep >= active.steps.length - 1) stopPlayback();
+    }, 1000);
+  });
+  byId("prev-step").addEventListener("click", () => { stopPlayback(); setStep(activeStep - 1); });
+  byId("next-step").addEventListener("click", () => { stopPlayback(); setStep(activeStep + 1); });
+  document.querySelectorAll("[data-filter]").forEach((button) => button.addEventListener("click", () => {
+    filter = button.dataset.filter;
+    document.querySelectorAll("[data-filter]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+    renderIndex();
+  }));
+  byId("case-search").addEventListener("input", (event) => { search = event.target.value.trim().toLocaleLowerCase(); renderIndex(); });
+  byId("reset-search").addEventListener("click", () => {
+    search = ""; filter = "all"; byId("case-search").value = "";
+    document.querySelectorAll("[data-filter]").forEach((item) => item.setAttribute("aria-pressed", String(item.dataset.filter === "all")));
+    renderIndex(); byId("case-search").focus();
+  });
+  byId("identity-toggle").addEventListener("click", () => {
+    const visible = byId("identity-panel").hidden;
+    byId("identity-panel").hidden = !visible;
+    byId("identity-toggle").setAttribute("aria-expanded", String(visible));
+    byId("identity-toggle").textContent = visible ? "证据身份 −" : "证据身份 +";
+  });
+  byId("copy-code").addEventListener("click", async () => {
+    if (!rawCode) return;
+    let success = false;
+    try { if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(rawCode); success = true; } } catch (_) { /* Local file permission may require the selection fallback. */ }
+    if (!success) {
+      const area = element("textarea", "clipboard-fallback");
+      area.value = rawCode; area.style.cssText = "position:fixed;left:-9999px;top:0";
+      document.body.append(area); area.select();
+      try { success = document.execCommand("copy"); } catch (_) { success = false; }
+      area.remove(); byId("copy-code").focus();
+    }
+    byId("copy-code").textContent = success ? "已复制 ✓" : "请手动选择代码";
+    if (copiedTimer) window.clearTimeout(copiedTimer);
+    copiedTimer = window.setTimeout(() => { byId("copy-code").textContent = "复制代码 ↗"; }, 2200);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") stopPlayback();
+    if (event.key === "/" && !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
+      event.preventDefault(); byId("case-search").focus();
+    }
+  });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) stopPlayback(); });
+  let scrollFrame = false;
+  window.addEventListener("scroll", () => {
+    if (scrollFrame) return;
+    scrollFrame = true;
+    requestAnimationFrame(() => {
+      const maximum = document.documentElement.scrollHeight - window.innerHeight;
+      document.querySelector(".reading-progress").style.transform = `scaleX(${maximum > 0 ? window.scrollY / maximum : 0})`;
+      scrollFrame = false;
+    });
+  }, {passive: true});
+  if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
+      if (entry.isIntersecting) { entry.target.classList.add("is-visible"); observer.unobserve(entry.target); }
+    }), {threshold: .1});
+    document.querySelectorAll(".reveal").forEach((node) => observer.observe(node));
+    document.documentElement.classList.add("js");
+  }
+  if (cases.length) { renderIndex(); selectCase(active); }
+  else { byId("workbench").hidden = true; byId("empty-workbench").hidden = false; }
+})();

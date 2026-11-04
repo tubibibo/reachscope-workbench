@@ -1,0 +1,47 @@
+[
+  {
+    "id": "bridge",
+    "title": "深链 → WebView → JS 桥 → 文件",
+    "entry": "com.example.app.MainActivity",
+    "sink": "file",
+    "expected_status": "SUPPORTED",
+    "expected_chain": true,
+    "note": "检查报告记录的完整候选路径；SUPPORTED 只表示报告证据一致，不证明现实可利用性。"
+  },
+  {
+    "id": "cross_component",
+    "title": "导出入口 → 未导出组件 → WebView",
+    "entry": "com.example.app.CrossEntry",
+    "sink": "webview",
+    "expected_status": "SUPPORTED",
+    "expected_chain": true,
+    "note": "源组件写 url，目标组件读 url。没有 JS 桥也应能核对这条路径。"
+  },
+  {
+    "id": "wrong_key",
+    "title": "写 note，读 url：参数不对应",
+    "entry": "com.example.app.M1KeyMismatch",
+    "sink": "webview",
+    "expected_status": "UNDECIDABLE",
+    "expected_chain": false,
+    "note": "这个样本的转发 key 不匹配。当前报告未找到支持；不据此宣布整个应用安全。"
+  },
+  {
+    "id": "permission",
+    "title": "签名权限保护的入口",
+    "entry": "com.example.app.InternalActivity",
+    "sink": "file",
+    "expected_status": "REFUTED",
+    "expected_chain": true,
+    "note": "报告保留了代码层候选路径，但签名权限阻断零权限普通应用直接访问该入口。仅否定这个访问前提，不否定其他路径。"
+  },
+  {
+    "id": "missing",
+    "title": "清单声明了入口，实现不可见",
+    "entry": "com.example.app.HiddenActivity",
+    "sink": "webview",
+    "expected_status": "UNDECIDABLE",
+    "expected_chain": false,
+    "note": "缺实现时应保留未知，不把解析不到当作安全。"
+  }
+]

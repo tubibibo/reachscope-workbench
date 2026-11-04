@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.app">
+
+    <uses-sdk android:minSdkVersion="23" android:targetSdkVersion="33" />
+
+    <application>
+        <activity android:name=".DeepLinkActivity" android:exported="true">
+
+            <!-- A：两条 <data>，不同 host → 两条深链（含 path 与无 path） -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="https" android:host="a.example.com" android:path="/open" />
+                <data android:scheme="https" android:host="b.example.com" />
+            </intent-filter>
+
+            <!-- B：自定义 scheme + pathPattern（必须原样保留） -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="myapp" android:host="x.example.com"
+                    android:pathPattern="/detail/.*" />
+            </intent-filter>
+
+            <!-- C：有 VIEW + data 但缺 BROWSABLE → 不算深链 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="ftp" android:host="ftp.example.com" />
+            </intent-filter>
+
+            <!-- D：有 VIEW + BROWSABLE 但无 data（无 scheme）→ 不算深链 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
+
+            <!-- E：pathPrefix 归入 paths（D-023）→ 深链的 path -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" android:host="c.example.com"
+                    android:pathPrefix="/pre" />
+            </intent-filter>
+
+        </activity>
+    </application>
+</manifest>

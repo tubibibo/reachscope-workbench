@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light"><meta name="description" content="ReachScope 路径阅览室：沿着 Android 代码路径，逐步查看证据。">
+  <title>ReachScope — 路径阅览室</title>
+  <style>{% include 'demo.css.j2' %}</style>
+</head>
+<body>
+<div class="reading-progress" aria-hidden="true"></div>
+<div class="page-shell">
+  <header class="masthead">
+    <a class="wordmark" href="#top" aria-label="ReachScope 首页"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M1 19V1h18M9 27h18V9M1 1l26 26M8 8h12v12" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>reachscope<span class="wordmark-dot">↗</span></a>
+    <nav aria-label="主导航"><a href="#lab">案例索引 <span>05</span></a><a href="#notes">阅读说明 ↗</a></nav>
+    <button id="motion-toggle" class="motion-toggle" type="button" aria-pressed="false" aria-label="暂停页面动画"><span class="motion-bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="motion-label">动态开启</span></button>
+  </header>
+  <main id="top">
+    <section class="cover" aria-labelledby="cover-title">
+      <div class="cover-copy">
+        <p class="eyebrow"><span class="square-dot"></span> ANDROID CODE / FIELD NOTES № 001</p>
+        <h1 id="cover-title">Follow<br><em>the trace.</em><span class="heading-period">*</span></h1>
+        <div class="cover-bottom"><p class="cover-description">从一个入口，到一行代码。<br><span>把路径展开，再逐步检查它的依据。</span></p><a class="enter-link" href="#lab">进入路径阅览室 <span aria-hidden="true">↘</span></a></div>
+      </div>
+      <div class="instrument" aria-label="代码路径的动态阅读示意">
+        <div class="instrument-top mono"><span>R—S / TRACE READER</span><span class="instrument-state"><i></i> LOCAL</span></div>
+        <svg class="scope-art" viewBox="0 0 510 420" aria-hidden="true">
+          <defs><pattern id="dot-grid" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".65" fill="#bcb9ad"/></pattern></defs>
+          <rect width="510" height="420" fill="url(#dot-grid)"/>
+          <g class="scope-orbit"><circle cx="255" cy="210" r="158" fill="none" stroke="#c4c1b6" stroke-width=".8"/><circle cx="255" cy="210" r="142" fill="none" stroke="#d1cec4" stroke-width="20" stroke-dasharray="1 10"/><circle cx="255" cy="210" r="117" fill="none" stroke="#9d9d92" stroke-width=".7" stroke-dasharray="3 5"/></g>
+          <path d="M20 210H490M255 22V398" stroke="#bdbbb0" stroke-width=".8"/>
+          <path d="M94 282 L179 282 L179 140 L326 140 L326 231 L416 231" class="instrument-wire" fill="none" stroke="#232725" stroke-width="1.3"/>
+          <path d="M94 282 L179 282 L179 140 L326 140 L326 231 L416 231" class="signal-trail" fill="none" stroke="#dc542e" stroke-width="3"/>
+          <circle cx="94" cy="282" r="7" fill="#f0ede4" stroke="#222824" stroke-width="1.3"/>
+          <circle cx="179" cy="140" r="7" fill="#f0ede4" stroke="#222824" stroke-width="1.3"/>
+          <circle cx="326" cy="140" r="7" fill="#dc542e"/><circle cx="416" cy="231" r="7" fill="#f0ede4" stroke="#222824" stroke-width="1.3"/>
+          <g font-family="monospace" font-size="10" fill="#666a61"><text x="76" y="310">01 / ENTRY</text><text x="158" y="119">02 / TRANSFER</text><text x="341" y="125">03</text><text x="397" y="258">04 / SOURCE</text><text x="247" y="40">N</text><text x="449" y="214">E</text><text x="247" y="388">S</text><text x="50" y="214">W</text></g>
+          <path class="scope-needle" d="M255 210L350 305" fill="none" stroke="#dc542e" stroke-width="1"/>
+          <circle cx="255" cy="210" r="4" fill="#222824"/><circle cx="255" cy="210" r="11" fill="none" stroke="#222824" stroke-width=".6"/>
+        </svg>
+        <div class="instrument-bottom mono"><span>READ THE PATH.<br>CHECK THE SOURCE.</span><span>35° ↗<br><span class="muted">阅读示意 / 非实时扫描</span></span></div>
+      </div>
+    </section>
+    <div class="cover-folio mono"><span>INDEPENDENT EVIDENCE TOOL</span><span>{{ summary.cases }} 个案例 &nbsp; / &nbsp; 本地读取 &nbsp; / &nbsp; v{{ summary.tool_version }}</span><a href="#lab">SCROLL TO EXPLORE ↓</a></div>
+
+    <section id="lab" class="lab-section" aria-labelledby="lab-title">
+      <div class="section-heading reveal"><div><p class="eyebrow">01 / THE READING ROOM</p><h2 id="lab-title">路径阅览室<span class="small-asterisk">✳</span></h2></div><p>选一个案例。点开节点，<br>看看每一步实际写了什么。</p></div>
+      <div class="lab-toolbar"><div class="filter-group" role="group" aria-label="按结论筛选"><button type="button" data-filter="all" aria-pressed="true">全部 <span>{{ summary.cases }}</span></button><button type="button" data-filter="supported" aria-pressed="false">有依据</button><button type="button" data-filter="refuted" aria-pressed="false">被阻断</button><button type="button" data-filter="unknown" aria-pressed="false">待确认</button></div><label class="search-box"><span aria-hidden="true">⌕</span><input id="case-search" type="search" placeholder="查找案例或入口" aria-label="查找案例或入口" autocomplete="off"><span class="mono">/</span></label></div>
+      <div class="reading-desk">
+        <aside class="case-index" aria-label="案例目录"><div class="index-heading mono"><span>INDEX / 案例</span><span id="visible-count">05</span></div><div id="case-list">{% for row in rows %}<a class="fallback-index" href="#fallback-{{ row.id }}">0{{ loop.index }} / {{ row.title }}</a>{% endfor %}</div><p id="no-results" hidden>没有匹配的案例。<br>试试其他关键词。</p><p class="index-caption mono">SELECT A CASE<br>FOLLOW ITS EVIDENCE ↗</p></aside>
+        <div id="workbench" class="workbench">
+          <header class="bench-heading"><div><span id="case-number" class="mono bench-number">01 / 05</span><h3 id="active-title">从深链到文件</h3></div><span id="verdict-label" class="verdict-label">SUPPORTED</span></header>
+          <p id="active-note" class="active-note" aria-live="polite">正在准备本地证据。</p>
+          <div class="inspect-grid">
+            <div class="trace-pane"><div class="pane-caption mono"><span id="path-kind">CANDIDATE PATH / 候选路径</span><span id="step-count">—</span></div><svg id="trace-svg" viewBox="0 0 420 330" role="group" aria-label="可交互路径节点"></svg><div class="transport"><button id="play-trace" type="button" aria-pressed="false"><span aria-hidden="true">▶</span> 逐步回放</button><div class="step-controls"><button id="prev-step" type="button" aria-label="上一步">←</button><span id="step-position" class="mono">01 / 05</span><button id="next-step" type="button" aria-label="下一步">→</button></div></div><div id="step-list" class="step-list" aria-label="路径步骤"></div><p class="transport-note">回放已保存的分析步骤，不执行目标 APK。</p></div>
+            <section class="code-pane" aria-label="所选节点的代码证据"><div class="code-toolbar mono"><span><i></i> SOURCE / 原始代码</span><button id="copy-code" type="button">复制代码 ↗</button></div><div class="source-caption"><span id="source-path">选择一个节点</span><span id="source-range" class="mono"></span></div><pre id="code-scroll"><code id="code-content"></code></pre><div class="code-footer mono"><span id="code-completeness">SOURCE SNAPSHOT</span><span id="evidence-kind">静态分析证据</span></div></section>
+          </div>
+          <footer class="bench-footer"><span id="chain-summary" class="mono"></span><div><a id="trace-link" href="traces/bridge.json">调用回放 ↗</a><a id="claim-link" href="claims/bridge.json">主张文件 ↗</a><button id="identity-toggle" type="button" aria-expanded="false" aria-controls="identity-panel">证据身份 +</button></div></footer>
+          <div id="identity-panel" class="identity-panel" hidden><span class="eyebrow">ARTIFACT / 内容身份</span><code id="artifact-id"></code><p>同一份代码、同一次分析。引用只在对应的证据快照内有效。</p></div>
+        </div>
+        <div id="empty-workbench" class="empty-workbench" hidden><span class="mono">NO MATCH</span><p>这一页没有匹配的案例。</p><button id="reset-search" type="button">清除筛选 ↗</button></div>
+      </div>
+      <noscript><style>.workbench,.lab-toolbar,.motion-toggle{display:none}</style><div class="noscript-note">JavaScript 已关闭。以下仍可阅读全部案例、代码位置和原始调用回放。</div>{% for row in rows %}<article class="case-fallback" id="fallback-{{ row.id }}"><h3>{{ row.title }}</h3><p>{{ row.status }} · {{ row.note }}</p>{% for chain in row.chains %}{% for step in chain.steps %}{% if step.source %}<details><summary>{{ step.sink }} / {{ step.source.file }}:{{ step.source.line }}</summary><pre>{{ step.source.snippet }}</pre></details>{% endif %}{% endfor %}{% endfor %}<a href="traces/{{ row.id }}.json">调用回放 ↗</a></article>{% endfor %}</noscript>
+    </section>
+
+    <section id="notes" class="notes-section reveal" aria-labelledby="notes-title"><div class="notes-heading"><p class="eyebrow">02 / BEFORE A CONCLUSION</p><h2 id="notes-title">读懂结果，<br><em>也读懂边界。</em></h2><p>这里展示的是工具如何组织证据。<br>每一种结论，都有它的适用范围。</p></div><div class="notes-list"><article><span class="note-number mono">01</span><div><h3>有依据 <span class="mono">SUPPORTED</span></h3><p>说法与这份静态报告中的候选路径一致。它仍然需要人工复核，不能直接等同于漏洞成立。</p></div><span class="note-symbol">↗</span></article><article><span class="note-number mono">02</span><div><h3>被阻断 <span class="mono">REFUTED</span></h3><p>某个直接访问前提被清单配置阻断，例如签名权限。其他入口、间接路径仍需分别判断。</p></div><span class="note-symbol">⊣</span></article><article><span class="note-number mono">03</span><div><h3>待确认 <span class="mono">UNDECIDABLE</span></h3><p>证据或分析覆盖不足。没有找到一条路径，不代表它不存在，也不代表整个应用安全。</p></div><span class="note-symbol">?</span></article></div></section>
+    <section class="colophon"><span class="eyebrow">A NOTE ON THIS EDITION</span><p>本页使用 {{ summary.cases }} 个合成源码案例，回归结果为 {{ summary.passed }}/{{ summary.cases }}。这是交互演示，不是现实漏洞检出率或 AI 效果评测。分析目前受调用深度 4、显式组件转发 1 跳等限制；反射、JNI、异步及部分分支语义尚未覆盖。</p><a href="summary.json">读取完整摘要 ↗</a></section>
+  </main>
+  <footer class="site-footer"><a class="footer-wordmark" href="#top">reachscope<span>↗</span></a><div class="footer-bottom mono"><span>CODE. PATHS. EVIDENCE.</span><span>离线生成 / 无外部资源 / v{{ summary.tool_version }}</span><a href="#top">BACK TO TOP ↑</a></div></footer>
+</div>
+<script id="case-data" type="application/json">{{ view_cases|default([])|tojson }}</script>
+<script>{% include 'demo.js.j2' %}</script>
+</body></html>

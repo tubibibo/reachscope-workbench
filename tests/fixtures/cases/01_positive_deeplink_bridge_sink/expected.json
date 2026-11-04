@@ -1,0 +1,40 @@
+{
+  "case": "01_positive_deeplink_bridge_sink",
+  "description": "深链传入的 URL 直接 loadUrl，桥未撤销且无来源校验，桥方法可读任意文件",
+  "expect": {
+    "exit_code": 0,
+    "analyzable": true,
+    "components": {
+      "com.example.app.MainActivity": {
+        "exported": true,
+        "impl_present": true,
+        "permission_protection": null
+      }
+    },
+    "deeplinks": [
+      {
+        "scheme": "myapp",
+        "host": "open.example.com",
+        "component": "com.example.app.MainActivity"
+      }
+    ],
+    "bridges": [
+      {
+        "impl_class": "com.example.app.JsBridge",
+        "revoked": false,
+        "origin_check_strength": "none",
+        "origin_check_location": "none",
+        "origin_check_effective": false
+      }
+    ],
+    "findings": [
+      {
+        "exploitability": "high",
+        "impact": "high",
+        "confidence_at_least": "medium",
+        "chain_must_include": ["loadUrl", "FileInputStream"]
+      }
+    ],
+    "counter_examples": []
+  }
+}

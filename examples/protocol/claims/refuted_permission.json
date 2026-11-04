@@ -1,0 +1,6 @@
+{
+  "schema_version": "0.1",
+  "kind": "reachability",
+  "entry": {"kind": "component", "name": "com.example.app.InternalActivity"},
+  "sink": {"kind": "file"}
+}

@@ -1,0 +1,15 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.app">
+
+    <!-- 真实 apktool 2.x 解码产物没有 <uses-sdk>（值被挪进 apktool.yml，D-054） -->
+
+    <application>
+        <activity android:name=".DeepLinkActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="myapp" android:host="open.example.com" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

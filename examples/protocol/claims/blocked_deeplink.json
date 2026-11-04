@@ -1,0 +1,6 @@
+{
+  "schema_version": "0.1",
+  "kind": "reachability",
+  "entry": {"kind": "deeplink", "name": "myapp://open.example.com"},
+  "sink": {"kind": "file"}
+}

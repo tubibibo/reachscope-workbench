@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.app">
+
+    <permission
+        android:name="com.example.app.SIGNATURE_PERM"
+        android:protectionLevel="signature" />
+
+    <uses-sdk android:targetSdkVersion="33" />
+
+    <application>
+        <activity
+            android:name=".InternalActivity"
+            android:exported="true"
+            android:permission="com.example.app.SIGNATURE_PERM" />
+        <activity
+            android:name=".UnknownPermActivity"
+            android:exported="true"
+            android:permission="com.third.party.CUSTOM_PERM" />
+    </application>
+</manifest>

@@ -1,0 +1,30 @@
+# 钉死换行符（避免 Windows 检出把 LF 变 CRLF，破坏 T5.1 golden）。
+# D-035（M2）：fixture 三类
+*.smali text eol=lf
+*.json text eol=lf
+*.xml text eol=lf
+# M2.5 扩展：源代码 / 文档 / 配置
+*.py   text eol=lf
+*.md   text eol=lf
+*.toml text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+# T4.2：HTML 模板（输出要求 LF，模板本身也钉死）
+*.j2   text eol=lf
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.css  text eol=lf
+*.html text eol=lf
+*.ps1  text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+/.dockerignore text eol=lf
+/Dockerfile text eol=lf
+MANIFEST.in text eol=lf
+*.lock text eol=lf
+
+# 二进制
+*.apk binary
+
+# 冻结的第三方文件按原字节保留，不做 EOL 归一化
+src/reachscope_workbench/modules/web/legacy/LICENSE -text

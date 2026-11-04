@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.app">
+    <uses-sdk android:minSdkVersion="23" android:targetSdkVersion="33" />
+
+    <application>
+        <!-- 真实 Activity：别名指向它 -->
+        <activity android:name=".MainActivity" android:exported="true" />
+
+        <!-- 有 targetActivity：实现存在性按 target 判定（D-032b） -->
+        <activity-alias android:name=".LauncherAlias"
+            android:targetActivity=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="myapp" android:host="alias.example.com" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- 缺 targetActivity：退化按别名自身名查（应为不存在 + warning） -->
+        <activity-alias android:name=".OrphanAlias" android:exported="true" />
+    </application>
+</manifest>

@@ -1,0 +1,393 @@
+{
+  "bridges": [
+    {
+      "exposed_to": "all_pages",
+      "id": "32bc611e",
+      "impl_class": "com.example.app.JsBridge",
+      "methods": [
+        {
+          "guarded": false,
+          "name": "readCache",
+          "params": [
+            "Ljava/lang/String;"
+          ],
+          "sinks": [
+            {
+              "kind": "file",
+              "ownership": "own",
+              "source": {
+                "file": "smali/com/example/app/JsBridge.smali",
+                "line": 36,
+                "snippet": "invoke-direct {v1, v0, p1}, Ljava/io/File;-><init>(Ljava/io/File;Ljava/lang/String;)V"
+              }
+            },
+            {
+              "kind": "file",
+              "ownership": "own",
+              "source": {
+                "file": "smali/com/example/app/JsBridge.smali",
+                "line": 40,
+                "snippet": "invoke-direct {v2, v1}, Ljava/io/FileInputStream;-><init>(Ljava/io/File;)V"
+              }
+            }
+          ],
+          "source": {
+            "file": "smali/com/example/app/JsBridge.smali",
+            "line": 23,
+            "snippet": ".method public readCache(Ljava/lang/String;)Ljava/lang/String;"
+          }
+        }
+      ],
+      "origin_check": {
+        "bypass_reason": null,
+        "effective": false,
+        "evidence": null,
+        "kind": null,
+        "location": "none",
+        "present": false,
+        "strength": "none"
+      },
+      "registered_in": {
+        "file": "smali/com/example/app/MainActivity.smali",
+        "line": 40,
+        "snippet": "invoke-virtual {v0, v1, v2}, Landroid/webkit/WebView;->addJavascriptInterface(Ljava/lang/Object;Ljava/lang/String;)V"
+      },
+      "revoke_at": null,
+      "revoked": false,
+      "source": {
+        "file": "smali/com/example/app/MainActivity.smali",
+        "line": 40,
+        "snippet": "invoke-virtual {v0, v1, v2}, Landroid/webkit/WebView;->addJavascriptInterface(Ljava/lang/Object;Ljava/lang/String;)V"
+      }
+    }
+  ],
+  "chains": [
+    {
+      "entries": [
+        "com.example.app.MainActivity"
+      ],
+      "evidence_complete": true,
+      "id": "778f54bf",
+      "judgments": [
+        {
+          "confidence": "high",
+          "name": "J1",
+          "reason": "no permission required",
+          "result": "PASS",
+          "score_delta": 0,
+          "source": {
+            "file": "AndroidManifest.xml",
+            "line": 0,
+            "snippet": "<activity xmlns:ns0=\"http://schemas.android.com/apk/res/android\" ns0:name=\".MainActivity\" ns0:exported=\"true\">\n\n            <intent-filter>\n                <action ns0:name=\"android.intent.action.VIEW"
+          }
+        },
+        {
+          "confidence": "high",
+          "name": "J2",
+          "reason": "implementation present",
+          "result": "PASS",
+          "score_delta": 0,
+          "source": {
+            "file": "AndroidManifest.xml",
+            "line": 0,
+            "snippet": "<activity xmlns:ns0=\"http://schemas.android.com/apk/res/android\" ns0:name=\".MainActivity\" ns0:exported=\"true\">\n\n            <intent-filter>\n                <action ns0:name=\"android.intent.action.VIEW"
+          }
+        },
+        {
+          "confidence": "high",
+          "name": "J3",
+          "reason": "all sinks stay within own boundary",
+          "result": "PASS",
+          "score_delta": 0,
+          "source": null
+        },
+        {
+          "confidence": "high",
+          "name": "J5",
+          "reason": "attacker-controlled value reaches sink in entry method",
+          "result": "PASS",
+          "score_delta": 0,
+          "source": {
+            "file": "smali/com/example/app/MainActivity.smali",
+            "line": 54,
+            "snippet": "invoke-virtual {v0, v1}, Landroid/webkit/WebView;->loadUrl(Ljava/lang/String;)V"
+          }
+        },
+        {
+          "confidence": "high",
+          "name": "J4",
+          "reason": "external page + bridge exposed to all pages (base +2)",
+          "result": "PASS",
+          "score_delta": 2,
+          "source": {
+            "file": "smali/com/example/app/MainActivity.smali",
+            "line": 54,
+            "snippet": "invoke-virtual {v0, v1}, Landroid/webkit/WebView;->loadUrl(Ljava/lang/String;)V"
+          }
+        },
+        {
+          "confidence": "high",
+          "name": "J4",
+          "reason": "origin check strength = none (+1)",
+          "result": "PASS",
+          "score_delta": 1,
+          "source": {
+            "file": "smali/com/example/app/MainActivity.smali",
+            "line": 54,
+            "snippet": "invoke-virtual {v0, v1}, Landroid/webkit/WebView;->loadUrl(Ljava/lang/String;)V"
+          }
+        },
+        {
+          "confidence": "high",
+          "name": "J4",
+          "reason": "origin check effective = False (+1)",
+          "result": "PASS",
+          "score_delta": 1,
+          "source": {
+            "file": "smali/com/example/app/MainActivity.smali",
+            "line": 54,
+            "snippet": "invoke-virtual {v0, v1}, Landroid/webkit/WebView;->loadUrl(Ljava/lang/String;)V"
+          }
+        },
+        {
+          "confidence": "high",
+          "name": "J4",
+          "reason": "bridge revoked = False (+1)",
+          "result": "PASS",
+          "score_delta": 1,
+          "source": {
+            "file": "smali/com/example/app/MainActivity.smali",
+            "line": 40,
+            "snippet": "invoke-virtual {v0, v1, v2}, Landroid/webkit/WebView;->addJavascriptInterface(Ljava/lang/Object;Ljava/lang/String;)V"
+          }
+        },
+        {
+          "confidence": "high",
+          "name": "J4",
+          "reason": "file_access = None, universal = None",
+          "result": "PASS",
+          "score_delta": 0,
+          "source": {
+            "file": "smali/com/example/app/MainActivity.smali",
+            "line": 54,
+            "snippet": "invoke-virtual {v0, v1}, Landroid/webkit/WebView;->loadUrl(Ljava/lang/String;)V"
+          }
+        },
+        {
+          "confidence": "high",
+          "name": "J4",
+          "reason": "no high-impact sink",
+          "result": "PASS",
+          "score_delta": 0,
+          "source": {
+            "file": "smali/com/example/app/MainActivity.smali",
+            "line": 40,
+            "snippet": "invoke-virtual {v0, v1, v2}, Landroid/webkit/WebView;->addJavascriptInterface(Ljava/lang/Object;Ljava/lang/String;)V"
+          }
+        },
+        {
+          "confidence": "high",
+          "name": "J6",
+          "reason": "all steps have evidence",
+          "result": "PASS",
+          "score_delta": 0,
+          "source": {
+            "file": "smali/com/example/app/MainActivity.smali",
+            "line": 54,
+            "snippet": "invoke-virtual {v0, v1}, Landroid/webkit/WebView;->loadUrl(Ljava/lang/String;)V"
+          }
+        }
+      ],
+      "rank": {
+        "confidence": "high",
+        "exploitability": "high",
+        "impact": "low"
+      },
+      "steps": [
+        {
+          "description": "deeplink → loadUrl",
+          "from": "com.example.app.MainActivity",
+          "order": 0,
+          "sink": "webview",
+          "source": {
+            "file": "smali/com/example/app/MainActivity.smali",
+            "line": 54,
+            "snippet": "invoke-virtual {v0, v1}, Landroid/webkit/WebView;->loadUrl(Ljava/lang/String;)V"
+          },
+          "to": "webview"
+        },
+        {
+          "description": "bridge exposed to attacker-controlled page",
+          "from": "webview",
+          "order": 1,
+          "sink": "bridge_method",
+          "source": {
+            "file": "smali/com/example/app/MainActivity.smali",
+            "line": 40,
+            "snippet": "invoke-virtual {v0, v1, v2}, Landroid/webkit/WebView;->addJavascriptInterface(Ljava/lang/Object;Ljava/lang/String;)V"
+          },
+          "to": "com.example.app.JsBridge->readCache"
+        },
+        {
+          "description": "bridge method → file sink",
+          "from": "com.example.app.JsBridge->readCache",
+          "order": 2,
+          "sink": "file",
+          "source": {
+            "file": "smali/com/example/app/JsBridge.smali",
+            "line": 36,
+            "snippet": "invoke-direct {v1, v0, p1}, Ljava/io/File;-><init>(Ljava/io/File;Ljava/lang/String;)V"
+          },
+          "to": ""
+        },
+        {
+          "description": "bridge method → file sink",
+          "from": "com.example.app.JsBridge->readCache",
+          "order": 3,
+          "sink": "file",
+          "source": {
+            "file": "smali/com/example/app/JsBridge.smali",
+            "line": 40,
+            "snippet": "invoke-direct {v2, v1}, Ljava/io/FileInputStream;-><init>(Ljava/io/File;)V"
+          },
+          "to": ""
+        },
+        {
+          "description": "file sink path bounded by directory signal (ownership=own)",
+          "from": "com.example.app.JsBridge->readCache",
+          "order": 4,
+          "sink": "file_ownership",
+          "source": {
+            "file": "smali/com/example/app/JsBridge.smali",
+            "line": 30,
+            "snippet": "invoke-virtual {v0}, Landroid/content/Context;->getCacheDir()Ljava/io/File;"
+          },
+          "to": ""
+        }
+      ]
+    }
+  ],
+  "components": [
+    {
+      "exported": true,
+      "exported_inferred": false,
+      "impl_present": true,
+      "impl_reason": null,
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "auto_verify": false,
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "hosts": [
+            "open.example.com"
+          ],
+          "path_patterns": [],
+          "paths": [],
+          "ports": [],
+          "schemes": [
+            "myapp"
+          ]
+        }
+      ],
+      "name": "com.example.app.MainActivity",
+      "permission": null,
+      "permission_protection": null,
+      "source": {
+        "file": "AndroidManifest.xml",
+        "line": 0,
+        "snippet": "<activity xmlns:ns0=\"http://schemas.android.com/apk/res/android\" ns0:name=\".MainActivity\" ns0:exported=\"true\">\n\n            <intent-filter>\n                <action ns0:name=\"android.intent.action.VIEW"
+      },
+      "target_activity": null,
+      "type": "activity"
+    }
+  ],
+  "counter_examples": [],
+  "deeplinks": [
+    {
+      "auto_verify": false,
+      "component": "com.example.app.MainActivity",
+      "host": "open.example.com",
+      "id": "9f15f33b",
+      "params": [],
+      "path": "",
+      "scheme": "myapp",
+      "source": {
+        "file": "AndroidManifest.xml",
+        "line": 0,
+        "snippet": "<activity xmlns:ns0=\"http://schemas.android.com/apk/res/android\" ns0:name=\".MainActivity\" ns0:exported=\"true\">\n\n            <intent-filter>\n                <action ns0:name=\"android.intent.action.VIEW"
+      }
+    }
+  ],
+  "findings": [
+    {
+      "chain_id": "778f54bf",
+      "confidence": "high",
+      "counter_evidence": [],
+      "exploitability": "high",
+      "impact": "low",
+      "summary": "path: webview → com.example.app.JsBridge->readCache → file → file → file_ownership; exploitability=high, impact=low, confidence=high",
+      "title": "com.example.app.MainActivity → file_ownership"
+    }
+  ],
+  "meta": {
+    "analyzed_at": "2026-01-01T00:00:00+00:00",
+    "apk_path": "",
+    "apk_sha256": "",
+    "apktool_version": null,
+    "min_sdk": 21,
+    "package": "com.example.app",
+    "target_sdk": 33,
+    "tool_version": "0.4.1",
+    "version_code": "1",
+    "version_name": "1.0",
+    "warnings": []
+  },
+  "protection": {
+    "analyzable": true,
+    "detected": false,
+    "labels": [],
+    "tool": null,
+    "warnings": []
+  },
+  "schema_version": "0.1",
+  "summary": {
+    "bridges": 1,
+    "chains": 1,
+    "components": 1,
+    "counter_examples": 0,
+    "deeplinks": 1,
+    "findings": 1,
+    "webviews": 1
+  },
+  "webviews": [
+    {
+      "file_access": null,
+      "id": "cea2fb4a",
+      "js_enabled": true,
+      "owner_class": "com.example.app.MainActivity",
+      "owner_method": "onCreate(Landroid/os/Bundle;)V",
+      "source": {
+        "file": "smali/com/example/app/MainActivity.smali",
+        "line": 54,
+        "snippet": "invoke-virtual {v0, v1}, Landroid/webkit/WebView;->loadUrl(Ljava/lang/String;)V"
+      },
+      "universal_file_access": null,
+      "url_sources": [
+        {
+          "kind": "intent_data",
+          "source": {
+            "file": "smali/com/example/app/MainActivity.smali",
+            "line": 54,
+            "snippet": "invoke-virtual {v0, v1}, Landroid/webkit/WebView;->loadUrl(Ljava/lang/String;)V"
+          },
+          "value": ""
+        }
+      ]
+    }
+  ]
+}

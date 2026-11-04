@@ -1,0 +1,39 @@
+{
+  "case": "09_origin_check_before_load",
+  "description": "强校验位于同一方法内且在 loadUrl 之前生效，非白名单 host 直接返回，应判 effective=true 并把 exploitability 压到 low",
+  "expect": {
+    "exit_code": 0,
+    "analyzable": true,
+    "components": {
+      "com.example.app.MainActivity": {
+        "exported": true,
+        "impl_present": true,
+        "permission_protection": null
+      }
+    },
+    "deeplinks": [
+      {
+        "scheme": "myapp",
+        "host": "open.example.com",
+        "component": "com.example.app.MainActivity"
+      }
+    ],
+    "bridges": [
+      {
+        "impl_class": "com.example.app.JsBridge",
+        "revoked": false,
+        "origin_check_strength": "strong",
+        "origin_check_location": "pre_load",
+        "origin_check_effective": true
+      }
+    ],
+    "findings": [],
+    "counter_examples": [
+      {
+        "entry_kind": "deeplink",
+        "failed_judgment": "J4",
+        "reason_contains": "origin"
+      }
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+# PLAN §9.6：ruff 默认规则 + line-length 100
+line-length = 100
+target-version = "py311"
+cache-dir = ".cache/ruff"
+src = ["src", "tests"]
+
+exclude = [
+    ".git",
+    ".cache",
+    "artifacts",
+    ".venv",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".pytest_cache",
+    "__pycache__",
+    "build",
+    "dist",
+    "tests/fixtures",
+    "frontend/node_modules",
+    "src/reachscope_workbench/modules/web/legacy",
+]

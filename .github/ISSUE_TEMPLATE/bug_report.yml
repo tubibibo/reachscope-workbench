@@ -1,0 +1,55 @@
+name: 缺陷报告
+description: 报告可复现的应用问题。
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        提交前请移除密钥、Cookie、私有源码、真实资产名与 `.workbench/` 数据库。
+        如涉及安全漏洞，请勿公开提交；使用仓库的私密安全公告入口。
+  - type: input
+    id: version
+    attributes:
+      label: ReachScope Workbench 版本
+      description: 运行 `reachscope-workbench --version` 并填写输出。
+      placeholder: 0.14.1
+    validations:
+      required: true
+  - type: dropdown
+    id: operating_system
+    attributes:
+      label: 操作系统
+      options:
+        - Windows
+        - Linux
+        - macOS
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: python_version
+    attributes:
+      label: Python 版本
+      description: 运行 `python --version` 并填写输出。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 复现步骤
+      description: 优先使用内置合成样例；注明选择的模块、检查项及操作顺序。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望结果
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际结果
+      description: 仅附脱敏后的错误信息；请勿上传运行工作区或真实目标文件。
+    validations:
+      required: true

@@ -1,0 +1,320 @@
+# 资产指纹分类规则
+#
+# 设计原则：**规则是数据，引擎是逻辑**。改规则不改代码。
+# 引擎做多信号加权打分，输出 category + tech + confidence + evidence，
+# 用来回答「为什么把它判成这一类」和「误判了多少」。
+#
+# 字段说明：
+#   tech         组件/形态标识（细粒度）
+#   category     攻击面大类（粗粒度，供映射兜底）
+#   display_name 报告里显示的名字
+#   signals      匹配信号
+#     field      title / server / port / protocol / host
+#     pattern    关键词（大小写不敏感）
+#     weight     命中该信号的得分
+#   confidence_at  达到该分数即 100% 置信（缺省=本规则最大单项权重）
+#
+# 匹配方式：field=port 时为**精确相等**（避免 "808" 误伤 "8080"），
+#           其余字段为子串包含。
+
+version: 1
+
+rules:
+  # ---------------- API 文档 / 调试接口（P2，最高性价比） ----------------
+  - tech: spring_actuator
+    category: api_doc
+    display_name: Spring Boot Actuator
+    signals:
+      - { field: title, pattern: "actuator", weight: 3.0 }
+      - { field: server, pattern: "actuator", weight: 3.0 }
+      - { field: title, pattern: "spring boot", weight: 1.5 }
+      - { field: title, pattern: "springboot", weight: 1.5 }
+      - { field: port, pattern: "8080", weight: 0.5 }
+
+  - tech: swagger
+    category: api_doc
+    display_name: Swagger / OpenAPI 文档
+    signals:
+      - { field: title, pattern: "swagger", weight: 3.0 }
+      - { field: host, pattern: "swagger", weight: 2.5 }
+      - { field: title, pattern: "openapi", weight: 2.5 }
+      - { field: title, pattern: "api 文档", weight: 2.5 }
+      - { field: title, pattern: "接口文档", weight: 2.5 }
+      - { field: title, pattern: "在线文档", weight: 2.0 }
+
+  - tech: graphql
+    category: api_doc
+    display_name: GraphQL 接口
+    signals:
+      - { field: title, pattern: "graphql", weight: 3.0 }
+      - { field: title, pattern: "graphiql", weight: 3.0 }
+      - { field: host, pattern: "graphql", weight: 2.5 }
+
+  # ---------------- 管理后台 / 中间件控制台（P1，弱口令即拿下） ----------------
+  - tech: jenkins
+    category: admin
+    display_name: Jenkins
+    signals:
+      - { field: title, pattern: "jenkins", weight: 3.0 }
+      - { field: server, pattern: "jenkins", weight: 3.0 }
+      - { field: host, pattern: "jenkins", weight: 2.5 }
+      - { field: port, pattern: "8080", weight: 0.3 }
+
+  - tech: tomcat_manager
+    category: admin
+    display_name: Tomcat Manager
+    signals:
+      - { field: title, pattern: "tomcat manager", weight: 3.0 }
+      - { field: title, pattern: "manager app", weight: 2.5 }
+      - { field: server, pattern: "tomcat", weight: 1.5 }
+      - { field: title, pattern: "tomcat", weight: 1.5 }
+
+  - tech: weblogic_console
+    category: admin
+    display_name: WebLogic 控制台
+    signals:
+      - { field: title, pattern: "weblogic", weight: 3.0 }
+      - { field: server, pattern: "weblogic", weight: 3.0 }
+      - { field: port, pattern: "7001", weight: 2.0 }
+
+  - tech: jboss
+    category: admin
+    display_name: JBoss / WildFly
+    signals:
+      - { field: title, pattern: "jboss", weight: 3.0 }
+      - { field: server, pattern: "jboss", weight: 3.0 }
+      - { field: title, pattern: "wildfly", weight: 2.5 }
+      - { field: title, pattern: "jmx-console", weight: 3.0 }
+
+  # 精确指纹权重必须压过 admin_panel 这类通用规则：
+  # 否则 "phpMyAdmin" 会同时命中 admin_panel 的 title/host 两条信号而反超。
+  - tech: phpmyadmin
+    category: admin
+    display_name: phpMyAdmin
+    signals:
+      - { field: title, pattern: "phpmyadmin", weight: 5.0 }
+      - { field: host, pattern: "phpmyadmin", weight: 4.0 }
+
+  - tech: admin_panel
+    category: admin
+    display_name: 管理后台
+    signals:
+      - { field: title, pattern: "管理", weight: 2.0 }
+      - { field: title, pattern: "后台", weight: 2.5 }
+      - { field: title, pattern: "admin", weight: 2.0 }
+      - { field: title, pattern: "console", weight: 1.5 }
+      - { field: title, pattern: "运营", weight: 1.5 }
+      - { field: host, pattern: "admin", weight: 2.0 }
+      - { field: host, pattern: "manage", weight: 1.5 }
+
+  # ---------------- 认证面（P1，账号接管高发区） ----------------
+  - tech: login_portal
+    category: auth
+    display_name: 登录 / 认证入口
+    signals:
+      - { field: title, pattern: "登录", weight: 2.5 }
+      - { field: title, pattern: "login", weight: 2.5 }
+      - { field: title, pattern: "sign in", weight: 2.5 }
+      - { field: title, pattern: "signin", weight: 2.5 }
+      - { field: title, pattern: "统一认证", weight: 2.5 }
+      - { field: title, pattern: "通行证", weight: 2.5 }
+      - { field: title, pattern: "单点", weight: 2.0 }
+      - { field: host, pattern: "login", weight: 2.0 }
+      - { field: host, pattern: "passport", weight: 2.5 }
+      - { field: host, pattern: "sso", weight: 2.5 }
+      - { field: host, pattern: "auth", weight: 1.5 }
+
+  - tech: oauth
+    category: auth
+    display_name: OAuth / 第三方授权
+    signals:
+      - { field: host, pattern: "oauth", weight: 3.0 }
+      - { field: title, pattern: "oauth", weight: 2.5 }
+      - { field: title, pattern: "授权", weight: 1.5 }
+
+  # ---------------- 文件上传（P2） ----------------
+  - tech: upload
+    category: upload
+    display_name: 文件上传点
+    signals:
+      - { field: title, pattern: "上传", weight: 2.5 }
+      - { field: title, pattern: "upload", weight: 2.5 }
+      - { field: host, pattern: "upload", weight: 2.0 }
+      - { field: host, pattern: "file", weight: 1.0 }
+
+  # ---------------- 对象存储（P2，STS 通配 / 桶策略） ----------------
+  - tech: object_storage
+    category: object_storage
+    display_name: 对象存储桶
+    signals:
+      - { field: server, pattern: "amazon s3", weight: 3.0 }
+      - { field: server, pattern: "aliyunoss", weight: 3.0 }
+      - { field: server, pattern: "tencent cos", weight: 3.0 }
+      - { field: title, pattern: "bucket", weight: 2.0 }
+      - { field: title, pattern: "object storage", weight: 2.0 }
+      - { field: host, pattern: "oss", weight: 1.5 }
+      - { field: host, pattern: "s3", weight: 1.5 }
+      - { field: host, pattern: "cos", weight: 1.0 }
+
+  # ---------------- 组件 / 数据库暴露（端口是硬信号，权重最高） ----------------
+  - tech: redis
+    category: exposed_service
+    display_name: Redis 未授权
+    signals:
+      - { field: port, pattern: "6379", weight: 3.0 }
+      - { field: server, pattern: "redis", weight: 2.5 }
+
+  - tech: mysql
+    category: exposed_service
+    display_name: MySQL 暴露
+    signals:
+      - { field: port, pattern: "3306", weight: 3.0 }
+      - { field: server, pattern: "mysql", weight: 2.5 }
+
+  - tech: mongodb
+    category: exposed_service
+    display_name: MongoDB 未授权
+    signals:
+      - { field: port, pattern: "27017", weight: 3.0 }
+      - { field: server, pattern: "mongodb", weight: 2.5 }
+
+  - tech: elasticsearch
+    category: exposed_service
+    display_name: Elasticsearch 未授权
+    signals:
+      - { field: port, pattern: "9200", weight: 3.0 }
+      - { field: title, pattern: "elasticsearch", weight: 2.5 }
+      - { field: host, pattern: "es", weight: 0.5 }
+
+  - tech: kibana
+    category: exposed_service
+    display_name: Kibana
+    signals:
+      - { field: title, pattern: "kibana", weight: 3.0 }
+      - { field: port, pattern: "5601", weight: 2.5 }
+
+  - tech: docker_api
+    category: exposed_service
+    display_name: Docker Remote API
+    signals:
+      - { field: port, pattern: "2375", weight: 3.0 }
+      - { field: title, pattern: "docker", weight: 1.5 }
+
+  - tech: etcd
+    category: exposed_service
+    display_name: etcd 未授权
+    signals:
+      - { field: port, pattern: "2379", weight: 3.0 }
+      - { field: title, pattern: "etcd", weight: 2.5 }
+
+  - tech: memcached
+    category: exposed_service
+    display_name: Memcached 未授权
+    signals:
+      - { field: port, pattern: "11211", weight: 3.0 }
+
+  - tech: postgresql
+    category: exposed_service
+    display_name: PostgreSQL 暴露
+    signals:
+      - { field: port, pattern: "5432", weight: 3.0 }
+      - { field: server, pattern: "postgresql", weight: 2.5 }
+
+  - tech: mssql
+    category: exposed_service
+    display_name: SQL Server 暴露
+    signals:
+      - { field: port, pattern: "1433", weight: 3.0 }
+
+  - tech: oracle
+    category: exposed_service
+    display_name: Oracle 暴露
+    signals:
+      - { field: port, pattern: "1521", weight: 3.0 }
+
+  - tech: ftp
+    category: exposed_service
+    display_name: FTP 暴露
+    signals:
+      - { field: port, pattern: "21", weight: 2.5 }
+      - { field: server, pattern: "ftp", weight: 2.0 }
+
+  - tech: ssh
+    category: exposed_service
+    display_name: SSH 暴露
+    signals:
+      - { field: port, pattern: "22", weight: 2.5 }
+      - { field: server, pattern: "openssh", weight: 2.5 }
+
+  - tech: rdp
+    category: exposed_service
+    display_name: RDP 暴露
+    signals:
+      - { field: port, pattern: "3389", weight: 2.5 }
+
+  - tech: smb
+    category: exposed_service
+    display_name: SMB 暴露
+    signals:
+      - { field: port, pattern: "445", weight: 2.5 }
+
+  # ---------------- 源码 / 配置泄露（P3，捡分） ----------------
+  - tech: dir_listing
+    category: scm_leak
+    display_name: 目录列举
+    signals:
+      - { field: title, pattern: "index of", weight: 3.0 }
+      - { field: title, pattern: "directory listing", weight: 3.0 }
+      - { field: title, pattern: "目录列表", weight: 2.5 }
+
+  - tech: phpinfo
+    category: scm_leak
+    display_name: phpinfo 暴露
+    signals:
+      - { field: title, pattern: "phpinfo", weight: 3.0 }
+      - { field: title, pattern: "php version", weight: 2.0 }
+
+  - tech: git_exposed
+    category: scm_leak
+    display_name: .git / 版本控制泄露
+    signals:
+      - { field: title, pattern: ".git", weight: 2.5 }
+      - { field: title, pattern: "git repository", weight: 2.5 }
+      - { field: title, pattern: "index of /.git", weight: 3.0 }
+
+  - tech: env_exposed
+    category: scm_leak
+    display_name: 配置文件 / 备份泄露
+    signals:
+      - { field: title, pattern: ".env", weight: 2.5 }
+      - { field: title, pattern: "backup", weight: 2.0 }
+      - { field: title, pattern: "备份", weight: 2.0 }
+      - { field: title, pattern: "web.config", weight: 2.0 }
+
+  # ---------------- 常规 Web（P4 兜底指纹） ----------------
+  - tech: nginx
+    category: web
+    display_name: Nginx
+    signals:
+      - { field: server, pattern: "nginx", weight: 2.0 }
+      - { field: title, pattern: "nginx", weight: 2.0 }
+
+  - tech: apache
+    category: web
+    display_name: Apache
+    signals:
+      - { field: server, pattern: "apache", weight: 2.0 }
+
+  - tech: iis
+    category: web
+    display_name: IIS
+    signals:
+      - { field: server, pattern: "microsoft-iis", weight: 2.5 }
+      - { field: server, pattern: "iis", weight: 2.0 }
+
+  - tech: tomcat
+    category: web
+    display_name: Tomcat
+    signals:
+      - { field: server, pattern: "tomcat", weight: 2.0 }
+      - { field: title, pattern: "apache tomcat", weight: 2.5 }
