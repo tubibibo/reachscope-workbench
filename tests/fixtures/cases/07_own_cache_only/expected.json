@@ -1,0 +1,40 @@
+{
+  "case": "07_own_cache_only",
+  "description": "桥方法只能读应用自身 cache 目录，J3 判 own，impact 必须降为 low；但页面仍外部可控，exploitability 不受影响",
+  "expect": {
+    "exit_code": 0,
+    "analyzable": true,
+    "components": {
+      "com.example.app.MainActivity": {
+        "exported": true,
+        "impl_present": true,
+        "permission_protection": null
+      }
+    },
+    "deeplinks": [
+      {
+        "scheme": "myapp",
+        "host": "open.example.com",
+        "component": "com.example.app.MainActivity"
+      }
+    ],
+    "bridges": [
+      {
+        "impl_class": "com.example.app.JsBridge",
+        "revoked": false,
+        "origin_check_strength": "none",
+        "origin_check_location": "none",
+        "origin_check_effective": false
+      }
+    ],
+    "findings": [
+      {
+        "exploitability": "high",
+        "impact": "low",
+        "confidence_at_least": "medium",
+        "chain_must_include": ["loadUrl", "getCacheDir"]
+      }
+    ],
+    "counter_examples": []
+  }
+}

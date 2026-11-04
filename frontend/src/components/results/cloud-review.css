@@ -1,0 +1,229 @@
+.cloud-input-preview {
+  background: #f2f1e9;
+  border: 1px solid var(--rule);
+  padding: 20px;
+  margin-top: 20px;
+  min-width: 0;
+}
+.cloud-input-preview > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cloud-input-preview h4 {
+  margin: 9px 0 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+.cloud-input-preview > p,
+.cloud-preview-limits,
+.cloud-preview-gaps,
+.cloud-guide-note {
+  font-size: 11px;
+  line-height: 1.85;
+  color: #5e6853;
+  overflow-wrap: anywhere;
+}
+.cloud-preview-counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 14px 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  gap: 10px;
+}
+.cloud-preview-counts dt {
+  font-size: 10px;
+  color: #606858;
+}
+.cloud-preview-counts dd {
+  font: 25px var(--mono);
+  margin: 8px 0 0;
+}
+.cloud-resource-types {
+  display: grid;
+  gap: 7px;
+  margin: 18px 0;
+}
+.cloud-resource-types > span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  background: var(--surface);
+  padding: 9px;
+}
+.cloud-resource-types code {
+  overflow-wrap: anywhere;
+  min-width: 0;
+  font-size: 10px;
+  flex: 1;
+}
+.cloud-resource-types strong,
+.cloud-resource-types small {
+  font-size: 10px;
+  font-weight: 400;
+}
+.cloud-resource-types small {
+  color: #606858;
+}
+.cloud-preview-table {
+  font-size: 10px;
+  min-width: 500px;
+}
+.cloud-preview-table th,
+.cloud-preview-table td {
+  white-space: nowrap;
+}
+.cloud-preview-gaps summary,
+.cloud-preview-limits summary {
+  cursor: pointer;
+}
+.cloud-preview-gaps {
+  margin: 15px 0;
+}
+.cloud-preview-gaps ul {
+  padding: 0;
+  list-style: none;
+}
+.cloud-preview-gaps li {
+  display: grid;
+  gap: 5px;
+  border-bottom: 1px solid var(--rule);
+  padding: 10px 0;
+}
+.cloud-preview-gaps code,
+.cloud-preview-digest {
+  overflow-wrap: anywhere;
+  font-size: 10px;
+}
+.cloud-preview-digest {
+  display: block;
+  margin: 12px 0;
+}
+.cloud-preview-warning {
+  background: #f3e6d4;
+  color: #78592d;
+  padding: 12px;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.cloud-results-brief {
+  padding: 22px;
+  border: 1px solid var(--rule);
+  margin: 20px 0;
+  background: var(--surface);
+}
+.cloud-results-brief h3 {
+  font-size: 17px;
+  font-weight: 500;
+  margin: 9px 0 16px;
+}
+.cloud-results-counts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--rule);
+}
+.cloud-results-counts > button {
+  padding: 13px;
+  border: 0;
+  border-right: 1px solid var(--rule);
+  background: #f5f4ec;
+  text-align: left;
+}
+.cloud-results-counts > button[aria-pressed="true"] {
+  background: #e8ecdd;
+  box-shadow: inset 0 -2px #7d8d67;
+}
+.cloud-results-counts > button:last-child {
+  border-right: none;
+}
+.cloud-results-counts strong {
+  display: block;
+  font: 24px var(--mono);
+  margin-bottom: 7px;
+}
+.cloud-results-counts span {
+  font-size: 10px;
+}
+.cloud-manual-guidance {
+  border-top: 1px solid var(--rule);
+  margin-top: 16px;
+}
+.cloud-manual-guidance > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 0;
+  cursor: pointer;
+  font-size: 11px;
+}
+.cloud-guide-location {
+  background: #f1f0e7;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px 16px;
+  padding: 11px;
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+  font-size: 10px;
+}
+.cloud-manual-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.cloud-manual-grid > div {
+  padding: 14px;
+  border: 1px solid var(--rule);
+}
+.cloud-manual-grid h5 {
+  font-size: 11px;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+.cloud-manual-grid ol,
+.cloud-guidance-limits {
+  padding-left: 19px;
+  font-size: 11px;
+  line-height: 1.85;
+  margin: 0;
+}
+.cloud-manual-grid li + li,
+.cloud-guidance-limits li + li {
+  margin-top: 7px;
+}
+.cloud-guidance-limits {
+  margin: 16px 0;
+  color: #646e59;
+}
+.cloud-guide-references {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 10px;
+  color: #546b40;
+}
+.cloud-guide-references a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 700px) {
+  .cloud-input-preview,
+  .cloud-results-brief {
+    padding: 15px;
+  }
+  .cloud-input-preview h4 {
+    font-size: 14px;
+  }
+  .cloud-results-counts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cloud-results-counts > button {
+    border-bottom: 1px solid var(--rule);
+  }
+  .cloud-manual-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

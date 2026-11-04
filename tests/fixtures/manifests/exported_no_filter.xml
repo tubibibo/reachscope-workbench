@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.app">
+
+    <uses-sdk android:targetSdkVersion="33" />
+
+    <application>
+        <activity android:name=".SilentActivity" />
+        <receiver android:name=".SilentReceiver" />
+        <provider android:name=".SilentProvider" android:authorities="com.example.app.provider" />
+    </application>
+</manifest>

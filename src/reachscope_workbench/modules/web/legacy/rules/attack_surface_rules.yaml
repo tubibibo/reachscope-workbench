@@ -1,0 +1,383 @@
+# 攻击面映射规则
+#
+# 每条规则是一个四元组，这是本工具与「通用资产扫描器」的分水岭：
+#   tactics         打哪（具体动作）
+#   success_signal  出什么算成（判定标准）
+#   false_positive  什么算假点（**看起来可疑、实际不成立的情形**）
+#   knowledge_ref   参考主题标签（便于归类检索，不含外部文档内容）
+#
+# 匹配方式：优先按 tech 精确匹配，匹配不到再按 category 兜底。
+#   match: tech      → 与 classify_rules.yaml 的 tech 对应
+#   match: category  → 兜底（如 web / unknown）
+#
+# priority：SRC 价值优先级，1 最高（认证/凭据类），5 最低。
+#   参考：P1 认证接管 > P2 文件/接口/越权 > P3 暴露面泄露 > P4 常规 Web > P5 人工确认
+#
+# 合规红线：本文件只描述**探测与验证**动作，不含任何可利用的 payload，
+#   不描述 DoS、不描述绕过访问控制的具体手法。
+
+version: 1
+
+rules:
+  # ==================== P1：凭据 / 接管类 ====================
+  - key: spring_actuator
+    match: tech
+    display_name: Spring Boot Actuator 暴露
+    priority: 1
+    tactics:
+      - "逐个探活 /actuator、/actuator/env、/actuator/heapdump、/actuator/mappings"
+      - "取 /actuator/env 看是否有库账密、云 AK/SK、内网地址"
+      - "heapdump 下载后用 strings 检索 password / secret / aksk"
+      - "有 /actuator/gateway/routes 时查路由，确认是否可增删改（CVE-2022-22947 相关面）"
+    success_signal: "env 出现真实连接串/云钥；或 heapdump 解出明文凭据"
+    false_positive:
+      - "只有 /actuator/health 返回 status UP"
+      - "所有端点均 401/403"
+      - "env 里全是 ENTER_YOUR_PASSWORD 一类占位符"
+      - "heapdump 404 或返回空"
+    knowledge_ref: ["information disclosure", "server-side request handling"]
+
+  - key: jenkins
+    match: tech
+    display_name: Jenkins 未授权
+    priority: 1
+    tactics:
+      - "确认是否可匿名访问 /script（Groovy 控制台）"
+      - "查 /manage、/view/all 的任务列表与构建历史"
+      - "构建日志/凭据配置里找内网地址与令牌"
+    success_signal: "能匿名打开脚本控制台，或能看到他人任务/构建日志中的凭据"
+    false_positive:
+      - "打开即跳转登录页且无匿名可读内容"
+      - "只有公开的任务名，点进去需登录"
+    knowledge_ref: ["information disclosure", "business logic"]
+
+  - key: weblogic_console
+    match: tech
+    display_name: WebLogic 控制台
+    priority: 1
+    tactics:
+      - "查 /console 是否对外可达，试常见默认口令"
+      - "确认 T3/IIOP 端口（7001/7002）是否对公网开放"
+    success_signal: "能进入控制台，或 T3 端口公网可达"
+    false_positive:
+      - "控制台页面 404"
+      - "存在但仅内网可达"
+    knowledge_ref: ["information disclosure", "asset discovery"]
+
+  - key: tomcat_manager
+    match: tech
+    display_name: Tomcat Manager
+    priority: 1
+    tactics:
+      - "查 /manager/html 是否可达，试默认口令（tomcat/tomcat、admin/admin）"
+      - "确认是否存在 WAR 部署入口"
+    success_signal: "能登录 manager 后台"
+    false_positive:
+      - "返回 401 且换常见口令均失败"
+      - "只有 /manager/status 且需认证"
+    knowledge_ref: ["information disclosure", "asset discovery"]
+
+  - key: jboss
+    match: tech
+    display_name: JBoss / WildFly 控制台
+    priority: 1
+    tactics:
+      - "查 /jmx-console/、/web-console/ 是否未授权"
+      - "看是否能通过管理接口读取 MBean 信息"
+    success_signal: "未授权即可访问 JMX 控制台"
+    false_positive:
+      - "控制台返回 403/需认证"
+      - "只有静态欢迎页"
+    knowledge_ref: ["information disclosure", "asset discovery"]
+
+  - key: phpmyadmin
+    match: tech
+    display_name: phpMyAdmin
+    priority: 1
+    tactics:
+      - "试常见弱口令与空口令"
+      - "确认是否允许无验证直接进入数据库列表"
+    success_signal: "能进入并看到数据库/表结构"
+    false_positive:
+      - "登录页存在但弱口令全部失败"
+      - "被 WAF 或 IP 白名单拦截"
+    knowledge_ref: ["information disclosure"]
+
+  - key: login_portal
+    match: tech
+    display_name: 登录 / 认证入口
+    priority: 1
+    tactics:
+      - "先找业务面：本 host 网关或跳转后的 host，不要磨登录页 HTML"
+      - "查是否存在未登录即可调用的发签/换票/登录接口（换 path 前缀与 METHOD）"
+      - "查重置密码、改绑、邀请激活口是否未登录可调"
+      - "有号后优先打对象图：换 id 看是否出他人数据"
+    success_signal: "未登录拿到可用会话/票据，或能读取他人对象数据"
+    false_positive:
+      - "所有接口均返回请先登录"
+      - "拿到的 ticket 是空号/游客号，无任何业务数据"
+      - "改密/改绑类接口必须真短信或真旧密"
+    knowledge_ref: ["authentication and session handling", "object-level authorization"]
+
+  - key: oauth
+    match: tech
+    display_name: OAuth / 授权回调
+    priority: 1
+    tactics:
+      - "试 redirect_uri 改为外域，看是否仍签发并回跳"
+      - "查报错信息/报错 URL 是否回显 access_token 或 client_secret"
+      - "查是否存在未登录即可领取 token 的接口"
+    success_signal: "外域回调被接受，或报错中回显真实票据/密钥"
+    false_positive:
+      - "外域回调被拒且报错中无票据"
+      - "回显的是占位串或已过期票据"
+    knowledge_ref: ["token and OAuth handling", "authentication and session handling"]
+
+  # ==================== P2：文件 / 接口 / 越权 ====================
+  - key: swagger
+    match: tech
+    display_name: Swagger / API 文档
+    priority: 2
+    tactics:
+      - "导出接口清单，逐个确认是否未授权可调用"
+      - "重点看写操作（POST/PUT/DELETE）与带 id 参数的读接口"
+      - "对比文档字段与实际回包，找文档未声明的敏感字段"
+    success_signal: "未授权调用成功，或出现他人业务数据"
+    false_positive:
+      - "文档可读但所有接口均返回 401"
+      - "接口返回的都是演示/占位数据"
+    knowledge_ref: ["object-level authorization", "information disclosure"]
+
+  - key: graphql
+    match: tech
+    display_name: GraphQL
+    priority: 2
+    tactics:
+      - "查 introspection 是否开启，导出完整 schema"
+      - "找带 id / tenantId 的查询，试越权读取"
+      - "看写类 mutation 是否未授权"
+    success_signal: "introspection 返回完整 schema，或查询出他人数据"
+    false_positive:
+      - "introspection 被关闭且业务查询全部需鉴权"
+      - "只返回公开目录类数据"
+    knowledge_ref: ["GraphQL interface", "object-level authorization"]
+
+  - key: admin_panel
+    match: tech
+    display_name: 管理后台
+    priority: 2
+    tactics:
+      - "试弱口令与默认口令（先确认无验证码/锁定策略）"
+      - "查是否存在前端写了 SSO 但后端仍暴露账密登录接口"
+      - "看是否有未授权的列表/导出接口（跳过登录页直打 API）"
+    success_signal: "进入后台，或未授权读到内部名单/导出数据"
+    false_positive:
+      - "仅登录页可达，所有 API 均需鉴权"
+      - "弱口令全部失败且有锁定策略"
+    knowledge_ref: ["authentication and session handling", "business logic"]
+
+  - key: upload
+    match: tech
+    display_name: 文件上传点
+    priority: 2
+    tactics:
+      - "确认上传后的文件名/路径是否可控、是否保留原扩展名"
+      - "查是否走对象存储直传：看 STS/预签名参数里 key 或 Policy 是否通配"
+      - "看 Content-Type 是否可覆盖为 text/html"
+    success_signal: "能控制对象 key 覆盖他人文件，或上传文件被当 HTML 执行"
+    false_positive:
+      - "文件名被完全随机化且内容类型被服务端锁死"
+      - "只能上传到隔离的临时目录且不可达"
+    knowledge_ref: ["file upload handling", "output encoding"]
+
+  - key: object_storage
+    match: tech
+    display_name: 对象存储桶
+    priority: 2
+    tactics:
+      - "匿名 ListBucket：看是否能列出对象清单"
+      - "查桶策略是否对匿名开放写（PUT）"
+      - "带签 URL 检查 SignedHeaders 是否包含 host，未包含则试换桶"
+    success_signal: "匿名能列出或写入对象，或签名可跨桶使用"
+    false_positive:
+      - "列出的是公开静态资源（app-static 一类）"
+      - "写操作返回 403"
+      - "签名绑定了 Host，换域即失败"
+    knowledge_ref: ["file upload handling", "information disclosure"]
+
+  # ==================== P3：暴露面 / 泄露 ====================
+  - key: redis
+    match: tech
+    display_name: Redis 未授权
+    priority: 3
+    tactics:
+      - "确认是否可免密连接（只做连通性与只读信息确认）"
+      - "查是否存在可写路径导致的持久化面（仅确认配置，不落文件）"
+    success_signal: "免密可连且能读到业务键名"
+    false_positive:
+      - "需要密码"
+      - "仅在内网可达"
+    knowledge_ref: ["information disclosure"]
+
+  - key: mysql
+    match: tech
+    display_name: MySQL 暴露
+    priority: 3
+    tactics:
+      - "确认端口对公网可达，试空口令与常见弱口令"
+      - "查是否允许任意来源连接"
+    success_signal: "能建立连接并列出数据库"
+    false_positive:
+      - "连接被拒或需认证"
+      - "仅监听内网"
+    knowledge_ref: ["information disclosure"]
+
+  - key: mongodb
+    match: tech
+    display_name: MongoDB 未授权
+    priority: 3
+    tactics:
+      - "确认是否免密可连并列库"
+    success_signal: "免密可连且能列出业务集合"
+    false_positive:
+      - "需认证"
+      - "空实例无业务数据"
+    knowledge_ref: ["information disclosure"]
+
+  - key: elasticsearch
+    match: tech
+    display_name: Elasticsearch / Kibana 未授权
+    priority: 3
+    tactics:
+      - "查 /_cat/indices 是否可读，确认是否有业务索引"
+      - "Kibana 看是否未授权进入 Discover"
+    success_signal: "能列出业务索引或读到业务文档"
+    false_positive:
+      - "仅返回集群健康信息"
+      - "索引为空或全是测试数据"
+    knowledge_ref: ["information disclosure"]
+
+  - key: kibana
+    match: tech
+    display_name: Kibana
+    priority: 3
+    tactics:
+      - "确认是否未授权进入，查索引模式与 Discover 数据"
+    success_signal: "未授权能看到业务日志内容"
+    false_positive:
+      - "进入需登录"
+      - "只有空索引模式"
+    knowledge_ref: ["information disclosure"]
+
+  - key: docker_api
+    match: tech
+    display_name: Docker Remote API
+    priority: 3
+    tactics:
+      - "查 /version、/containers/json 是否未授权可读"
+    success_signal: "能列出容器与镜像信息"
+    false_positive:
+      - "返回 403/需 TLS 客户端证书"
+      - "仅监听 127.0.0.1"
+    knowledge_ref: ["information disclosure"]
+
+  - key: etcd
+    match: tech
+    display_name: etcd 未授权
+    priority: 3
+    tactics:
+      - "查 /version 与键空间是否可读"
+    success_signal: "能读取到配置类键值"
+    false_positive:
+      - "需认证"
+      - "键空间无敏感内容"
+    knowledge_ref: ["information disclosure"]
+
+  - key: dir_listing
+    match: tech
+    display_name: 目录列举
+    priority: 3
+    tactics:
+      - "顺着目录找备份文件、SQL 转储、配置副本"
+      - "找打包发布物（zip/tar.gz）与 .NET 的 config 文件"
+    success_signal: "下载到含真实账密的配置或备份"
+    false_positive:
+      - "只有公开静态资源"
+      - "配置文件里全是占位符"
+    knowledge_ref: ["file path handling", "information disclosure"]
+
+  - key: git_exposed
+    match: tech
+    display_name: 版本控制泄露
+    priority: 3
+    tactics:
+      - "确认 .git 目录是否可拉取，看提交历史里有无密钥"
+      - "查 .svn/.hg 等其他版本控制残留"
+    success_signal: "能还原源码或历史提交中的真实凭据"
+    false_positive:
+      - ".git 目录 403/404"
+      - "仓库里无任何凭据（只有代码）"
+    knowledge_ref: ["source control exposure", "information disclosure"]
+
+  - key: env_exposed
+    match: tech
+    display_name: 配置文件 / 备份泄露
+    priority: 3
+    tactics:
+      - "确认 .env、config.*、*.bak 等可下载"
+      - "看内容是否含真实库账密或云密钥"
+    success_signal: "取到真实凭据"
+    false_positive:
+      - "内容是示例/占位值"
+      - "文件 404"
+    knowledge_ref: ["information disclosure", "source control exposure"]
+
+  - key: phpinfo
+    match: tech
+    display_name: phpinfo 暴露
+    priority: 3
+    tactics:
+      - "看是否泄露绝对路径、内网 IP、扩展与环境变量"
+    success_signal: "泄露内网地址或含凭据的环境变量"
+    false_positive:
+      - "仅显示版本信息"
+    knowledge_ref: ["information disclosure"]
+
+  - key: exposed_service
+    match: category
+    display_name: 组件 / 服务暴露
+    priority: 3
+    tactics:
+      - "确认端口对公网可达，查是否免密或弱口令"
+      - "确认是否属于目标资产范围再测（避免打错主体）"
+    success_signal: "免密可读到业务数据"
+    false_positive:
+      - "需认证或仅内网可达"
+      - "无法确认归属目标主体"
+    knowledge_ref: ["information disclosure"]
+
+  # ==================== P4 / P5：兜底 ====================
+  - key: web
+    match: category
+    display_name: 常规 Web 资产
+    priority: 4
+    tactics:
+      - "抽 JS 找未写在页面上的接口与签名参数"
+      - "过一遍通用矩阵：越权、未授权读、逻辑、上传、注入、SSRF"
+      - "看响应头是否暴露内网地址、中间件版本"
+    success_signal: "出现未授权数据或可直接利用的逻辑问题"
+    false_positive:
+      - "只有静态官网内容"
+      - "所有接口均需鉴权且无差分"
+    knowledge_ref: ["client-side code review", "asset discovery"]
+
+  - key: unknown
+    match: category
+    display_name: 未识别资产
+    priority: 5
+    tactics:
+      - "人工确认资产归属与用途，再决定投入"
+    success_signal: "—"
+    false_positive:
+      - "不属于目标主体"
+    knowledge_ref: ["asset discovery"]

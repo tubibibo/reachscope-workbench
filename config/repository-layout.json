@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "generated_root_files": [
+    "PKG-INFO",
+    "setup.cfg",
+    ".coverage",
+    ".coverage.*"
+  ],
+  "root_files": [
+    ".dockerignore",
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "Dockerfile",
+    "LICENSE",
+    "MANIFEST.in",
+    "README.md",
+    "README.zh-CN.md",
+    "SECURITY.md",
+    "THIRD_PARTY.md",
+    "pyproject.toml",
+    "requirements.lock",
+    "ruff.toml",
+    "start-workbench.ps1"
+  ],
+  "source_directories": [
+    ".github",
+    "benchmark",
+    "config",
+    "docs",
+    "examples",
+    "frontend",
+    "scripts",
+    "src",
+    "tests"
+  ],
+  "generated_directories": [
+    ".cache",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".ui-checks",
+    ".venv",
+    "venv",
+    ".eggs",
+    ".idea",
+    ".vscode",
+    "__pycache__",
+    "artifacts",
+    "build",
+    "dist",
+    "data"
+  ],
+  "private_state_directories": [
+    ".workbench",
+    ".reachscope"
+  ],
+  "required_paths": [
+    "docs/README.md",
+    "docs/development/repository-layout.md",
+    "frontend/src/lib",
+    "frontend/src/styles",
+    "frontend/src/generated",
+    "scripts/check.py",
+    "scripts/check_all.py",
+    "scripts/quality",
+    "scripts/smoke",
+    "scripts/benchmark",
+    "tests/browser",
+    "tests/fixtures",
+    "tests/golden",
+    "src/reachscope/samples",
+    "src/reachscope_workbench/static"
+  ],
+  "markdown_name_exceptions": [
+    "README.md"
+  ],
+  "python_name_roots": [
+    "scripts",
+    "tests/browser"
+  ],
+  "excluded_directory_names": [
+    ".git",
+    ".venv",
+    "venv",
+    "node_modules",
+    "__pycache__",
+    ".cache",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".ui-checks",
+    ".workbench",
+    ".reachscope",
+    "artifacts",
+    "build",
+    "dist",
+    "data"
+  ]
+}

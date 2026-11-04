@@ -1,0 +1,26 @@
+include LICENSE THIRD_PARTY.md CHANGELOG.md CONTRIBUTING.md SECURITY.md AGENTS.md ruff.toml
+recursive-include src/reachscope/samples *.json *.xml *.smali
+recursive-include src/reachscope/report/templates *.j2
+recursive-include tests *.py *.json *.xml *.smali *.md
+recursive-include scripts *.py *.md
+recursive-include config *.json
+recursive-include docs *.md *.png *.json
+recursive-include examples *.py *.md *.json
+global-exclude *.py[cod] .coverage *.apk *.dex *.odex
+
+recursive-include src/reachscope_workbench/static *
+recursive-include src/reachscope_workbench/modules/web/legacy/rules *.yaml
+include src/reachscope_workbench/modules/web/legacy/LICENSE
+recursive-include src/reachscope_workbench/modules *.md
+recursive-include frontend *.json *.html *.ts *.tsx *.css *.md *.py
+prune frontend/node_modules
+prune data
+prune .venv
+prune .workbench
+
+include start-workbench.ps1 requirements.lock
+include .gitattributes .gitignore
+recursive-include .github *.yml
+include artifacts/README.md
+recursive-include benchmark *.json *.csv *.md *.py
+include Dockerfile .dockerignore CODE_OF_CONDUCT.md README.zh-CN.md

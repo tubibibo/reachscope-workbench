@@ -1,0 +1,352 @@
+.lab-environment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  padding: 26px;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  margin-bottom: 25px;
+}
+.lab-environment h2,
+.lab-step h2 {
+  font-size: 21px;
+  font-weight: 400;
+  margin: 13px 0;
+}
+.lab-environment p,
+.lab-step > p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.9;
+}
+.lab-environment code {
+  display: block;
+  margin: 14px 0;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.lab-profile {
+  color: var(--green);
+  font-size: 11px;
+  display: block;
+}
+.lab-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 17px 0;
+}
+.lab-environment > .lab-actions {
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.lab-flow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--rule);
+  border-left: 1px solid var(--rule);
+  margin-bottom: 25px;
+}
+.lab-step {
+  padding: 25px;
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  min-width: 0;
+}
+.lab-step > .button {
+  margin: 8px 8px 10px 0;
+}
+.lab-check-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 11px;
+  margin: 18px 0;
+}
+.lab-check-options label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.lab-check-options input {
+  accent-color: var(--green);
+}
+.lab-job {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 15px 0;
+  border-top: 1px solid var(--rule);
+  margin-top: 15px;
+  font-size: 11px;
+}
+.lab-case {
+  display: flex;
+  gap: 10px;
+  color: var(--green);
+  padding: 18px 0;
+}
+.lab-case strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+.lab-case p {
+  font-size: 11px;
+}
+.lab-candidate {
+  padding: 13px;
+  border-left: 2px solid var(--accent);
+}
+.lab-candidate small {
+  display: block;
+  margin-top: 9px;
+}
+.lab-step .field {
+  margin: 20px 0;
+}
+.lab-comparison {
+  margin: 20px 0;
+  font-size: 11px;
+}
+.lab-comparison > strong {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+.lab-comparison > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--rule);
+  padding: 10px 0;
+  overflow-wrap: anywhere;
+}
+.lab-comparison > div > span {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.8;
+  max-height: 90px;
+  overflow: auto;
+}
+.lab-retest-outcome {
+  padding: 15px;
+  background: #e9eddf;
+}
+.lab-retest-outcome strong {
+  display: block;
+  font-weight: 500;
+  color: var(--green);
+}
+.lab-retest-outcome span {
+  display: block;
+  margin-top: 9px;
+  line-height: 1.8;
+}
+.lab-pending {
+  position: sticky;
+  bottom: 15px;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 13px 18px;
+  font-size: 12px;
+}
+.inspection-source.source-training {
+  background: #e5eaf1;
+  border-color: #c7d1e0;
+  color: #3f5a75;
+}
+@media (max-width: 1050px) {
+  .lab-flow {
+    grid-template-columns: 1fr;
+  }
+  .lab-environment {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .lab-environment > .lab-actions {
+    flex-direction: row;
+  }
+}
+@media (max-width: 700px) {
+  .lab-environment,
+  .lab-step {
+    padding: 20px;
+  }
+  .lab-step h2 {
+    font-size: 19px;
+  }
+}
+.result-brief {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 24px 0;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+}
+.result-brief > div {
+  padding: 20px;
+  border-right: 1px solid var(--rule);
+  min-width: 0;
+}
+.result-brief > div:last-child {
+  border-right: 0;
+}
+.result-brief h3 {
+  font-size: 15px;
+  font-weight: 500;
+  margin: 12px 0;
+}
+.result-brief p {
+  font-size: 12px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.result-brief small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.8;
+}
+.result-brief .text-button {
+  margin-top: 15px;
+  font-size: 10px;
+}
+.ai-model-diagnosis {
+  border-top: 1px solid var(--rule);
+  padding-top: 25px;
+  margin-top: 25px;
+}
+.ai-model-diagnosis h3 {
+  font-size: 19px;
+  font-weight: 400;
+  margin: 12px 0;
+}
+.ai-model-diagnosis > p,
+.ai-inference-next p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.9;
+}
+.ai-model-diagnosis > code {
+  display: block;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+  margin: 17px 0;
+}
+.ai-inference-next {
+  margin-top: 25px;
+  border-top: 1px solid var(--rule);
+  padding-top: 23px;
+}
+.control-handbook {
+  border-top: 1px solid var(--rule);
+  margin-top: 17px;
+  padding-top: 15px;
+}
+.control-handbook-body {
+  margin-top: 18px;
+}
+.control-handbook-body > p,
+.control-handbook-body > ul {
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--muted);
+}
+.handbook-group {
+  margin: 17px 0;
+}
+.handbook-group > strong,
+.handbook-signals > strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.handbook-group ol {
+  padding-left: 19px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.9;
+}
+.handbook-signals > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--rule);
+  padding: 10px 0;
+  font-size: 10px;
+}
+.handbook-template {
+  margin: 18px 0;
+  padding: 15px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+}
+.handbook-template h5 {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 12px;
+}
+.handbook-template p,
+.handbook-template li {
+  font-size: 11px;
+  line-height: 1.8;
+}
+.handbook-template pre {
+  max-width: 100%;
+  overflow: auto;
+  font-size: 11px;
+  line-height: 1.8;
+  padding: 15px;
+  background: var(--code);
+  color: var(--paper);
+}
+@media (max-width: 1100px) {
+  .result-brief {
+    grid-template-columns: 1fr 1fr;
+  }
+  .result-brief > div:nth-child(2) {
+    border-right: 0;
+  }
+  .result-brief > div:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--rule);
+  }
+}
+@media (max-width: 700px) {
+  .result-brief {
+    grid-template-columns: 1fr;
+  }
+  .result-brief > div {
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .result-brief > div:last-child {
+    border-bottom: 0;
+  }
+}
+.job-guide-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.job-guide-grid > article {
+  min-width: 0;
+}
+.guide-check-states {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 9px 0;
+}
+.guide-check-states span {
+  font-size: 10px;
+  padding: 5px 8px;
+  color: var(--green);
+  background: #e9eddf;
+}
+@media (max-width: 800px) {
+  .job-guide-grid {
+    grid-template-columns: 1fr;
+  }
+}

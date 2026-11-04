@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 安全漏洞（请勿公开）
+    url: https://github.com/tubibibo/reachscope-workbench/security/advisories/new
+    about: 请通过私密安全公告报告漏洞，勿在公开 Issue 中提交敏感资料。
+  - name: 使用问题
+    url: https://github.com/tubibibo/reachscope-workbench/blob/main/docs/README.md
+    about: 请先查阅文档索引。

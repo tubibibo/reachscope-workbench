@@ -1,0 +1,6 @@
+{
+  "detected": true,
+  "tool": "apkid",
+  "labels": ["packer::dexguard", "anti_vm"],
+  "analyzable": false
+}

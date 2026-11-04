@@ -1,0 +1,430 @@
+# 攻击路径转移规则库
+#
+# 来源：把攻击路径短表中的 95 条规则形式化为**状态转移**。
+#   前置（资产特征 + 已具备能力） → 动作 → 产出能力
+#   并附带「出什么算成」与「什么算假点」。
+#
+# 这是本项目的核心资产：扫描器告诉你「有什么」，
+# 转移图告诉你「拿到这个之后，下一步能走到哪」。
+#
+# 字段说明：
+#   id            转移唯一标识
+#   name          这一步叫什么
+#   from_tech     适用资产的 tech/category（空列表 = 任意资产）
+#   requires      需要已具备的能力（空 = 公网可达即可发起）
+#   produces      成功后获得的能力
+#   weight        可行性权重 0~1（经验频率，参与路径评分）
+#   action        打哪
+#   success_signal 出什么算成
+#   false_positive 什么算假点（作为路径上的「别当洞」提示输出）
+#   knowledge_ref 参考主题标签（便于归类检索，不含外部文档内容）
+
+version: 1
+
+# ---------------------------------------------------------------------------
+# 能力（路径上的节点状态）
+#   value    该能力本身的价值，终点能力最高
+#   terminal 是否为高价值终点（路径搜索到达即成链）
+# ---------------------------------------------------------------------------
+capabilities:
+  - { id: public_reach,      label: 公网可达,          value: 0 }
+  - { id: api_schema,        label: 接口清单,          value: 2 }
+  - { id: unauth_read,       label: 未授权读,          value: 3 }
+  - { id: unauth_write,      label: 未授权写,          value: 4 }
+  - { id: object_id,         label: 可遍历对象标识,    value: 2 }
+  - { id: signed_url,        label: 带签 URL / 临时凭证, value: 3 }
+  - { id: source_code,       label: 源码 / 配置,       value: 3 }
+  - { id: internal_addr,     label: 内网地址 / 服务,   value: 3 }
+  - { id: session_token,     label: 会话 / 票据,       value: 4 }
+  - { id: app_secret,        label: 应用密钥,          value: 5 }
+  - { id: credential,        label: 凭据（账密 / 云密钥）, value: 6, terminal: true }
+  - { id: other_tenant_data, label: 他人业务数据,      value: 7, terminal: true }
+  - { id: account_takeover,  label: 账号接管,          value: 9, terminal: true }
+
+# ---------------------------------------------------------------------------
+# 转移规则
+# ---------------------------------------------------------------------------
+transitions:
+
+  # ================= 接口面：先拿清单，再试越权 =================
+  - id: swagger_to_schema
+    name: 导出 Swagger 接口清单
+    from_tech: [swagger]
+    requires: []
+    produces: api_schema
+    weight: 0.9
+    action: "导出接口清单，确认哪些路径未在页面上暴露"
+    success_signal: "拿到完整接口列表，且能识别出页面未展示的路径"
+    false_positive:
+      - "文档可读但所有接口均返回 401"
+      - "接口返回的都是演示/占位数据"
+    knowledge_ref: ["object-level authorization", "information disclosure"]
+
+  - id: graphql_to_schema
+    name: GraphQL introspection 导出 schema
+    from_tech: [graphql]
+    requires: []
+    produces: api_schema
+    weight: 0.8
+    action: "查 introspection 是否开启，导出完整 schema"
+    success_signal: "返回完整 schema，能看出对象与字段关系"
+    false_positive:
+      - "introspection 被关闭"
+      - "只返回公开目录类数据"
+    knowledge_ref: ["GraphQL interface"]
+
+  - id: schema_to_unauth_read
+    name: 逐个接口验证是否未授权可读
+    from_tech: []
+    requires: [api_schema]
+    produces: unauth_read
+    weight: 0.7
+    action: "按导出的接口逐个确认是否未授权可调用，重点看带 id 的读接口"
+    success_signal: "不带任何凭据即可拿到业务数据"
+    false_positive:
+      - "接口需要网关签名但不校验登录，那属于另一种面"
+      - "返回的是公开配置，不含业务数据"
+    knowledge_ref: ["object-level authorization"]
+
+  - id: schema_to_unauth_write
+    name: 验证写操作是否未授权
+    from_tech: []
+    requires: [api_schema]
+    produces: unauth_write
+    weight: 0.5
+    action: "重点看 POST/PUT/DELETE，确认是否未授权可提交"
+    success_signal: "未授权写成功且平台状态真变（能改回）"
+    false_positive:
+      - "返回 200 但状态没变"
+      - "写操作需验证码或二次确认"
+    knowledge_ref: ["business logic", "cross-site request handling"]
+
+  - id: unauth_read_to_object_id
+    name: 从回包里找可遍历的对象标识
+    from_tech: []
+    requires: [unauth_read]
+    produces: object_id
+    weight: 0.8
+    action: "回包里找 id / orderId / tenantId / openid 一类可遍历字段；若是密文，找 JS 里的公钥自己加密相邻值"
+    success_signal: "改一个数字/密文，返回内容随之变化"
+    false_positive:
+      - "会话绑死，换 id 只回自己的"
+      - "id 是随机 UUID 无法遍历"
+    knowledge_ref: ["object-level authorization", "client-side code review"]
+
+  - id: object_id_to_tenant_data
+    name: 遍历对象标识读取他人数据
+    from_tech: []
+    requires: [unauth_read, object_id]
+    produces: other_tenant_data
+    weight: 0.75
+    action: "换邻号遍历，确认是否出现他人业务正文（姓名/手机/地址/订单）"
+    success_signal: "出现明确属于他人的数据，不是公开运营内容"
+    false_positive:
+      - "换号后返回空或仍只有自己刚建的数据"
+      - "内容是全站广播的公开运营文案"
+    knowledge_ref: ["object-level authorization"]
+
+  - id: unauth_write_to_tenant_data
+    name: 未授权写挂到他人名下
+    from_tech: []
+    requires: [unauth_write, object_id]
+    produces: other_tenant_data
+    weight: 0.5
+    action: "自己的对象不动，把关联字段（productId / ownerId）改成别人的，确认能否挂上去"
+    success_signal: "C 端能看到改动落到他人对象上（验证后改回）"
+    false_positive:
+      - "绑定返回 200 但目标对象没变"
+      - "只能绑自己名下的资源"
+    knowledge_ref: ["business logic", "object-level authorization"]
+
+  # ================= 组件暴露：一步到位拿凭据 =================
+  - id: actuator_to_credential
+    name: Actuator 取环境变量与堆转储
+    from_tech: [spring_actuator]
+    requires: []
+    produces: credential
+    weight: 0.7
+    action: "取 /actuator/env 看连接串与云密钥；heapdump 下载后检索明文凭据"
+    success_signal: "出现真实库账密或云 AK/SK"
+    false_positive:
+      - "只有 /actuator/health 返回 status UP"
+      - "env 里全是 ENTER_YOUR_PASSWORD 一类占位符"
+      - "所有端点均 401/403"
+    knowledge_ref: ["information disclosure"]
+
+  - id: actuator_to_internal
+    name: Actuator/mappings 找内网地址
+    from_tech: [spring_actuator]
+    requires: []
+    produces: internal_addr
+    weight: 0.6
+    action: "看 /actuator/mappings 与配置里的内网域名、注册中心地址"
+    success_signal: "拿到内网服务地址清单"
+    false_positive:
+      - "地址全是公网或占位域名"
+    knowledge_ref: ["information disclosure", "server-side request handling"]
+
+  - id: scm_to_source
+    name: 下载泄露的源码与配置
+    from_tech: [scm_leak]
+    requires: []
+    produces: source_code
+    weight: 0.8
+    action: "确认 .git / .env / 备份包可下载，还原内容"
+    success_signal: "拿到真实源码或配置文件原文"
+    false_positive:
+      - "目录只有公开静态资源"
+      - "配置里全是占位值"
+    knowledge_ref: ["source control exposure", "file path handling"]
+
+  - id: source_to_credential
+    name: 从源码配置里提取凭据
+    from_tech: []
+    requires: [source_code]
+    produces: credential
+    weight: 0.75
+    action: "在配置与历史提交里检索 password / secret / aksk"
+    success_signal: "取出可连接的真实凭据"
+    false_positive:
+      - "凭据已失效或只对测试环境有效"
+      - "是示例仓库的占位值"
+    knowledge_ref: ["information disclosure"]
+
+  - id: source_to_app_secret
+    name: 从源码里提取应用密钥
+    from_tech: []
+    requires: [source_code]
+    produces: app_secret
+    weight: 0.6
+    action: "找写死的 appId/appKey、AppSecret、签名盐"
+    success_signal: "拿到完整密钥，且能用它算出合法签名"
+    false_positive:
+      - "密钥是占位符，算出的签名过不了验签"
+      - "密钥已吊销"
+    knowledge_ref: ["object-level authorization", "authentication and session handling"]
+
+  - id: exposed_service_to_credential
+    name: 未授权组件读凭据
+    from_tech: [exposed_service]
+    requires: []
+    produces: credential
+    weight: 0.5
+    action: "确认免密可连后，查看配置与键名里是否含连接串"
+    success_signal: "读到业务键名或含账密的配置"
+    false_positive:
+      - "需要认证或仅内网可达"
+      - "实例为空，无业务数据"
+    knowledge_ref: ["information disclosure"]
+
+  - id: exposed_service_to_internal
+    name: 从组件配置找内网拓扑
+    from_tech: [exposed_service]
+    requires: []
+    produces: internal_addr
+    weight: 0.55
+    action: "查看集群节点、从库地址、内网域名"
+    success_signal: "拿到内网地址清单"
+    false_positive:
+      - "只有 127.0.0.1 或占位地址"
+    knowledge_ref: ["information disclosure", "server-side request handling"]
+
+  # ================= 对象存储：列、写、换桶 =================
+  - id: oss_to_unauth_read
+    name: 匿名列出对象清单
+    from_tech: [object_storage]
+    requires: []
+    produces: unauth_read
+    weight: 0.7
+    action: "匿名 ListBucket，看是否能列出对象清单"
+    success_signal: "列出业务对象（不只是公开静态资源）"
+    false_positive:
+      - "列出的只有 app-static 一类公开资源"
+      - "ListBucket 返回 403"
+    knowledge_ref: ["file upload handling", "information disclosure"]
+
+  - id: oss_to_unauth_write
+    name: 桶策略对匿名开放写
+    from_tech: [object_storage]
+    requires: []
+    produces: unauth_write
+    weight: 0.4
+    action: "查桶策略是否对匿名开放写（PUT），试覆盖已有对象"
+    success_signal: "能覆盖官方已引用的对象"
+    false_positive:
+      - "写操作返回 403"
+      - "只能写到隔离的临时前缀"
+    knowledge_ref: ["file upload handling"]
+
+  - id: oss_to_signed_url
+    name: 拿到带签 URL / 临时凭证
+    from_tech: [object_storage]
+    requires: []
+    produces: signed_url
+    weight: 0.6
+    action: "业务口申请预签名 URL 或 STS 临时凭证，检查 Policy 是否通配"
+    success_signal: "拿到签名，且 Policy/Action 不是固定值"
+    false_positive:
+      - "服务端把 filename/Action 写死，通配无效"
+      - "签名绑定了 Host，换域即失败"
+    knowledge_ref: ["file upload handling"]
+
+  - id: signed_url_to_object_id
+    name: 签名跨桶 / 通配覆盖他人对象
+    from_tech: []
+    requires: [signed_url]
+    produces: object_id
+    weight: 0.5
+    action: "换桶名或把 key 通配，确认能否列出并覆盖他人对象"
+    success_signal: "列出或覆盖到他人对象"
+    false_positive:
+      - "签名罩住 Host，换域 403"
+      - "只能操作自己前缀"
+    knowledge_ref: ["file upload handling"]
+
+  - id: upload_to_unauth_write
+    name: 上传点控制对象 key
+    from_tech: [upload]
+    requires: []
+    produces: unauth_write
+    weight: 0.55
+    action: "确认上传后的路径与文件名是否可控、Content-Type 是否可覆盖"
+    success_signal: "能指定对象 key，或上传内容被当作 HTML 执行"
+    false_positive:
+      - "文件名被完全随机化且内容类型锁死"
+      - "只能传到不可达的隔离目录"
+    knowledge_ref: ["file upload handling", "output encoding"]
+
+  # ================= 认证面：票据到接管 =================
+  - id: login_portal_to_token
+    name: 未登录拿到可用票据
+    from_tech: [login_portal]
+    requires: []
+    produces: session_token
+    weight: 0.45
+    action: "找未登录即可调用的发签/换票/登录接口（换前缀与 METHOD），或运营配置深链里带的 token"
+    success_signal: "未登录拿到能当会话用的票据"
+    false_positive:
+      - "拿到的是空号/游客号，无任何业务数据"
+      - "票据过期或只是占位串"
+    knowledge_ref: ["authentication and session handling", "token and OAuth handling"]
+
+  - id: oauth_to_token
+    name: 授权回调外域或报错回显票据
+    from_tech: [oauth]
+    requires: []
+    produces: session_token
+    weight: 0.4
+    action: "试 redirect_uri 外域；查报错信息是否回显 access_token / client_secret"
+    success_signal: "外域回调被接受，或报错中回显真实票据"
+    false_positive:
+      - "外域被拒且报错中没有票据"
+      - "回显的是占位串"
+    knowledge_ref: ["token and OAuth handling", "authentication and session handling"]
+
+  - id: app_secret_to_token
+    name: 用应用密钥换票据
+    from_tech: []
+    requires: [app_secret]
+    produces: session_token
+    weight: 0.6
+    action: "按文档算法现签，换该应用的用户票或 client 票"
+    success_signal: "票据可用，能问出应用身份"
+    false_positive:
+      - "真假密钥返回同一句错"
+      - "密钥过期或只对测试环境有效"
+    knowledge_ref: ["authentication and session handling", "token and OAuth handling"]
+
+  - id: token_to_tenant_data
+    name: 持票据读他人对象
+    from_tech: []
+    requires: [session_token]
+    produces: other_tenant_data
+    weight: 0.7
+    action: "带票据打 me/info 与业务列表，换对象 id 看是否出他人数据"
+    success_signal: "出现他人业务正文（不是空壳或公开广场）"
+    false_positive:
+      - "只出公开广场内容"
+      - "换 id 后返回空或只回自己的"
+    knowledge_ref: ["object-level authorization"]
+
+  - id: token_to_takeover
+    name: 票据可改绑 / 改密
+    from_tech: []
+    requires: [session_token]
+    produces: account_takeover
+    weight: 0.35
+    action: "查改密、改绑、重置口是否只验票据不验旧密/验码（验证后改回）"
+    success_signal: "未登录改掉他人密码或改绑成功"
+    false_positive:
+      - "必须真旧密或真短信"
+      - "返回 Success 但库里没变"
+    knowledge_ref: ["authentication and session handling"]
+
+  # ================= 管理面：控制台到接管 =================
+  - id: console_to_takeover
+    name: 中间件控制台弱口令进后台
+    from_tech: [jenkins, tomcat_manager, weblogic_console, jboss, phpmyadmin]
+    requires: []
+    produces: account_takeover
+    weight: 0.4
+    action: "试默认口令与常见弱口令；确认是否存在部署/脚本执行入口"
+    success_signal: "进入控制台，能执行脚本或部署"
+    false_positive:
+      - "存在但弱口令全部失败且有锁定策略"
+      - "仅内网可达"
+    knowledge_ref: ["information disclosure"]
+
+  - id: admin_to_tenant_data
+    name: 后台未授权读出内部名单
+    from_tech: [admin_panel]
+    requires: []
+    produces: other_tenant_data
+    weight: 0.5
+    action: "跳过登录页直打列表/导出接口，换租户或 id 看是否出内部名单"
+    success_signal: "出现内部名单、他人手机或导出数据"
+    false_positive:
+      - "所有 API 均需鉴权"
+      - "列表只有公开的运营内容"
+    knowledge_ref: ["authentication and session handling", "business logic"]
+
+  - id: docker_api_to_takeover
+    name: Docker Remote API 未授权
+    from_tech: [docker_api]
+    requires: []
+    produces: account_takeover
+    weight: 0.5
+    action: "查 /containers/json 是否可读，确认能否创建容器"
+    success_signal: "能列出容器，进而可挂载宿主目录"
+    false_positive:
+      - "返回 403 或需要 TLS 客户端证书"
+      - "仅监听 127.0.0.1"
+    knowledge_ref: ["information disclosure"]
+
+  # ================= 内网横向（需先拿到内网地址）=================
+  - id: internal_to_service
+    name: 打内网无鉴权服务
+    from_tech: []
+    requires: [internal_addr]
+    produces: unauth_read
+    weight: 0.45
+    action: "对拿到的内网地址确认是否无鉴权（注意只在授权范围内）"
+    success_signal: "内网服务免密可读"
+    false_positive:
+      - "内网地址不可达或需认证"
+      - "超出授权范围，不得继续"
+    knowledge_ref: ["server-side request handling", "information disclosure"]
+
+  # ================= 常规 Web 兜底 =================
+  - id: web_to_unauth_read
+    name: 常规面抽 JS 找接口
+    from_tech: [web]
+    requires: []
+    produces: unauth_read
+    weight: 0.3
+    action: "抽 JS 找页面未暴露的接口与签名参数，逐个确认是否未授权"
+    success_signal: "找到未授权接口或隐藏字段"
+    false_positive:
+      - "所有接口均需鉴权且无差分"
+      - "只有静态官网内容"
+    knowledge_ref: ["client-side code review", "asset discovery"]

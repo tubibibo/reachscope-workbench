@@ -1,0 +1,44 @@
+{
+  "case": "06_bridge_partial_revoke",
+  "description": "注册了 native 与 debug 两个桥，只 removeJavascriptInterface(\"debug\")，native 仍然暴露",
+  "expect": {
+    "exit_code": 0,
+    "analyzable": true,
+    "components": {
+      "com.example.app.MainActivity": {
+        "exported": true,
+        "impl_present": true,
+        "permission_protection": null
+      }
+    },
+    "deeplinks": [
+      {
+        "scheme": "myapp",
+        "host": "open.example.com",
+        "component": "com.example.app.MainActivity"
+      }
+    ],
+    "bridges": [
+      {
+        "impl_class": "com.example.app.JsBridge",
+        "revoked": false,
+        "origin_check_strength": "none",
+        "origin_check_location": "none",
+        "origin_check_effective": false
+      },
+      {
+        "impl_class": "com.example.app.DebugBridge",
+        "revoked": true
+      }
+    ],
+    "findings": [
+      {
+        "exploitability": "high",
+        "impact": "high",
+        "confidence_at_least": "medium",
+        "chain_must_include": ["loadUrl", "FileInputStream"]
+      }
+    ],
+    "counter_examples": []
+  }
+}

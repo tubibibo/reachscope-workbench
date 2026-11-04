@@ -1,0 +1,30 @@
+{
+  "case": "02_signature_permission",
+  "description": "组件 exported 但被签名级权限保护，零权限第三方 App 无法启动，应进入 J1 反例",
+  "expect": {
+    "exit_code": 0,
+    "analyzable": true,
+    "components": {
+      "com.example.app.InternalActivity": {
+        "exported": true,
+        "impl_present": true,
+        "permission_protection": "signature"
+      }
+    },
+    "deeplinks": [
+      {
+        "scheme": "myapp",
+        "host": "internal.example.com",
+        "component": "com.example.app.InternalActivity"
+      }
+    ],
+    "findings": [],
+    "counter_examples": [
+      {
+        "entry_kind": "component",
+        "failed_judgment": "J1",
+        "reason_contains": "signature-level permission"
+      }
+    ]
+  }
+}

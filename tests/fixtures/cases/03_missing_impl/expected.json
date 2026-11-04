@@ -1,0 +1,36 @@
+{
+  "case": "03_missing_impl",
+  "description": "manifest 声明了 exported 的 HiddenActivity，但包内不存在该类的实现，属于悬空声明，应进入 J2 反例",
+  "expect": {
+    "exit_code": 0,
+    "analyzable": true,
+    "components": {
+      "com.example.app.HiddenActivity": {
+        "exported": true,
+        "impl_present": false,
+        "permission_protection": null
+      },
+      "com.example.app.MainActivity": {
+        "exported": false,
+        "impl_present": true,
+        "permission_protection": null
+      }
+    },
+    "deeplinks": [
+      {
+        "scheme": "myapp",
+        "host": "hidden.example.com",
+        "component": "com.example.app.HiddenActivity"
+      }
+    ],
+    "bridges": [],
+    "findings": [],
+    "counter_examples": [
+      {
+        "entry_kind": "component",
+        "failed_judgment": "J2",
+        "reason_contains": "implementation class not found"
+      }
+    ]
+  }
+}

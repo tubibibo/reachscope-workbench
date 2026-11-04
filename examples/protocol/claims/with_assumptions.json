@@ -1,0 +1,13 @@
+{
+  "schema_version": "0.1",
+  "kind": "reachability",
+  "entry": {"kind": "component", "name": "com.example.app.MainActivity"},
+  "sink": {"kind": "file"},
+  "assumptions": [
+    {
+      "id": "a-page-url",
+      "text": "WebView 首次加载的 URL 可由第三方 App 通过 Intent extra 控制",
+      "source": "model"
+    }
+  ]
+}

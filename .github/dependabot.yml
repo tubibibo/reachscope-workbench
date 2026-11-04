@@ -1,0 +1,29 @@
+version: 2
+# Grouped on purpose: ungrouped updates open one pull request per dependency,
+# and each one triggers the full five-job CI matrix. Three grouped PRs a month
+# is sustainable for a single maintainer; twenty are not.
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      python-deps:
+        patterns: ["*"]
+    open-pull-requests-limit: 3
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: monthly
+    groups:
+      frontend-deps:
+        patterns: ["*"]
+    open-pull-requests-limit: 3
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+    open-pull-requests-limit: 3

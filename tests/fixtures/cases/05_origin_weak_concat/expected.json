@@ -1,0 +1,41 @@
+{
+  "case": "05_origin_weak_concat",
+  "description": "contains(\"example.com/web\") 作用在 host+path 拼接串上，攻击者可用 evil.com/example.com/web 绕过，必须判 weak 并给出 bypass_reason",
+  "expect": {
+    "exit_code": 0,
+    "analyzable": true,
+    "components": {
+      "com.example.app.MainActivity": {
+        "exported": true,
+        "impl_present": true,
+        "permission_protection": null
+      }
+    },
+    "deeplinks": [
+      {
+        "scheme": "myapp",
+        "host": "open.example.com",
+        "component": "com.example.app.MainActivity"
+      }
+    ],
+    "bridges": [
+      {
+        "impl_class": "com.example.app.JsBridge",
+        "revoked": false,
+        "origin_check_strength": "weak",
+        "origin_check_location": "should_override",
+        "origin_check_effective": false,
+        "bypass_reason_non_empty": true
+      }
+    ],
+    "findings": [
+      {
+        "exploitability": "high",
+        "impact": "high",
+        "confidence_at_least": "medium",
+        "chain_must_include": ["loadUrl", "FileInputStream"]
+      }
+    ],
+    "counter_examples": []
+  }
+}

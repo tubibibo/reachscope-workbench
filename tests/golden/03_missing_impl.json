@@ -1,0 +1,121 @@
+{
+  "bridges": [],
+  "chains": [],
+  "components": [
+    {
+      "exported": true,
+      "exported_inferred": false,
+      "impl_present": false,
+      "impl_reason": "implementation class not found in APK",
+      "intent_filters": [
+        {
+          "actions": [
+            "android.intent.action.VIEW"
+          ],
+          "auto_verify": false,
+          "categories": [
+            "android.intent.category.DEFAULT",
+            "android.intent.category.BROWSABLE"
+          ],
+          "hosts": [
+            "hidden.example.com"
+          ],
+          "path_patterns": [],
+          "paths": [],
+          "ports": [],
+          "schemes": [
+            "myapp"
+          ]
+        }
+      ],
+      "name": "com.example.app.HiddenActivity",
+      "permission": null,
+      "permission_protection": null,
+      "source": {
+        "file": "AndroidManifest.xml",
+        "line": 0,
+        "snippet": "<activity xmlns:ns0=\"http://schemas.android.com/apk/res/android\" ns0:name=\".HiddenActivity\" ns0:exported=\"true\">\n\n            <intent-filter>\n                <action ns0:name=\"android.intent.action.VI"
+      },
+      "target_activity": null,
+      "type": "activity"
+    },
+    {
+      "exported": false,
+      "exported_inferred": false,
+      "impl_present": true,
+      "impl_reason": null,
+      "intent_filters": [],
+      "name": "com.example.app.MainActivity",
+      "permission": null,
+      "permission_protection": null,
+      "source": {
+        "file": "AndroidManifest.xml",
+        "line": 0,
+        "snippet": "<activity xmlns:ns0=\"http://schemas.android.com/apk/res/android\" ns0:name=\".MainActivity\" ns0:exported=\"false\" />"
+      },
+      "target_activity": null,
+      "type": "activity"
+    }
+  ],
+  "counter_examples": [
+    {
+      "entry_id": "com.example.app.HiddenActivity",
+      "entry_kind": "component",
+      "failed_judgment": "J2",
+      "reason": "implementation class not found in APK",
+      "source": {
+        "file": "AndroidManifest.xml",
+        "line": 0,
+        "snippet": "<activity xmlns:ns0=\"http://schemas.android.com/apk/res/android\" ns0:name=\".HiddenActivity\" ns0:exported=\"true\">\n\n            <intent-filter>\n                <action ns0:name=\"android.intent.action.VI"
+      }
+    }
+  ],
+  "deeplinks": [
+    {
+      "auto_verify": false,
+      "component": "com.example.app.HiddenActivity",
+      "host": "hidden.example.com",
+      "id": "45b8a114",
+      "params": [],
+      "path": "",
+      "scheme": "myapp",
+      "source": {
+        "file": "AndroidManifest.xml",
+        "line": 0,
+        "snippet": "<activity xmlns:ns0=\"http://schemas.android.com/apk/res/android\" ns0:name=\".HiddenActivity\" ns0:exported=\"true\">\n\n            <intent-filter>\n                <action ns0:name=\"android.intent.action.VI"
+      }
+    }
+  ],
+  "findings": [],
+  "meta": {
+    "analyzed_at": "2026-01-01T00:00:00+00:00",
+    "apk_path": "",
+    "apk_sha256": "",
+    "apktool_version": null,
+    "min_sdk": 21,
+    "package": "com.example.app",
+    "target_sdk": 33,
+    "tool_version": "0.4.1",
+    "version_code": "1",
+    "version_name": "1.0",
+    "warnings": []
+  },
+  "protection": {
+    "analyzable": true,
+    "detected": false,
+    "labels": [],
+    "tool": null,
+    "warnings": []
+  },
+  "schema_version": "0.1",
+  "summary": {
+    "bridges": 0,
+    "chains": 0,
+    "components": 2,
+    "counter_examples": 1,
+    "deeplinks": 1,
+    "findings": 0,
+    "webviews": 0
+  },
+  "webviews": []
+}

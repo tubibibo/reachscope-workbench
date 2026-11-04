@@ -1,0 +1,13 @@
+{
+  "case": "08_hardened_app",
+  "description": "加固包判定 analyzable=false，主流程必须短路，退出码 3，不得输出空结果冒充无问题",
+  "expect": {
+    "exit_code": 3,
+    "analyzable": false,
+    "components": {},
+    "deeplinks": [],
+    "bridges": [],
+    "findings": [],
+    "counter_examples": []
+  }
+}

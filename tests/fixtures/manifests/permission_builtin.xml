@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.app">
+
+    <uses-sdk android:targetSdkVersion="33" />
+
+    <application>
+        <activity
+            android:name=".CameraActivity"
+            android:exported="true"
+            android:permission="android.permission.CAMERA" />
+        <activity
+            android:name=".InternetActivity"
+            android:exported="true"
+            android:permission="android.permission.INTERNET" />
+        <activity
+            android:name=".UnlistedActivity"
+            android:exported="true"
+            android:permission="android.permission.SOME_NEW_PERMISSION" />
+    </application>
+</manifest>

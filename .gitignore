@@ -1,0 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# 测试与覆盖率
+.cache/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+tests/golden/__diff__/
+
+# 工具输出
+reachscope-out/
+
+# 目标样本（不得入库）
+*.apk
+*.odex
+*.dex
+
+# 编辑器 / 系统
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local evidence, generated walkthroughs and type/lint caches
+/artifacts/*
+!/artifacts/README.md
+.reachscope/
+reachscope-demo/
+.mypy_cache/
+.ruff_cache/
+.ui-checks/
+
+.workbench/
+data/
+frontend/node_modules/
+frontend/.vite/
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+
+# Local secrets and application logs
+.env
+.env.*
+!.env.example
+*.log
+
+# Public-source guard: private credentials and local binary exports
+.ssh/
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+id_ecdsa_sk
+id_ed25519_sk
+*.ppk
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.jar
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.tgz
+*.whl

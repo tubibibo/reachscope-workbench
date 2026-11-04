@@ -1,0 +1,41 @@
+{
+  "case": "04_origin_strong_should_override",
+  "description": "校验强度是 strong（equals(getHost())），但只存在于 shouldOverrideUrlLoading，拦不住首次 loadUrl，effective 必须为 false",
+  "expect": {
+    "exit_code": 0,
+    "analyzable": true,
+    "components": {
+      "com.example.app.MainActivity": {
+        "exported": true,
+        "impl_present": true,
+        "permission_protection": null
+      }
+    },
+    "deeplinks": [
+      {
+        "scheme": "myapp",
+        "host": "open.example.com",
+        "component": "com.example.app.MainActivity"
+      }
+    ],
+    "bridges": [
+      {
+        "impl_class": "com.example.app.JsBridge",
+        "revoked": false,
+        "origin_check_strength": "strong",
+        "origin_check_location": "should_override",
+        "origin_check_effective": false,
+        "bypass_reason_non_empty": true
+      }
+    ],
+    "findings": [
+      {
+        "exploitability": "high",
+        "impact": "high",
+        "confidence_at_least": "medium",
+        "chain_must_include": ["loadUrl", "FileInputStream"]
+      }
+    ],
+    "counter_examples": []
+  }
+}

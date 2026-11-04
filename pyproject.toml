@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reachscope-workbench"
+version = "0.14.1"
+description = "Local security hardening, evidence review and remediation workbench"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "ReachScope" }]
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY.md"]
+keywords = ["android", "apk", "static-analysis", "webview", "security"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Information Technology",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+]
+# Workbench runtime: local HTTP API, bounded probes, report rendering and rule loading.
+dependencies = ["jinja2>=3.1", "fastapi>=0.115,<1", "uvicorn>=0.30,<1", "httpx>=0.28,<0.29", "PyYAML>=6", "python-multipart>=0.0.18"]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0", "pytest-cov>=5.0"]
+dev = ["mypy>=1.11", "build>=1.2", "ruff>=0.8", "pytest>=8.0", "pytest-cov>=5.0", "pytest-asyncio>=0.24", "types-PyYAML>=6"]
+apkid = ["apkid>=2.1"]
+ui = ["playwright>=1.45"]
+
+[project.scripts]
+reachscope = "reachscope.cli:main"
+reachscope-workbench = "reachscope_workbench.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# HTML 模板必须进 wheel（T4.2）；不配置时 setuptools 不会带走 .j2。
+[tool.setuptools.package-data]
+"reachscope.report" = ["templates/*.j2"]
+"reachscope_workbench" = ["static/*", "static/assets/*", "modules/web/legacy/rules/*.yaml", "modules/web/legacy/LICENSE", "modules/web/legacy/PROVENANCE.md", "collectors/host/LICENSE"]
+"reachscope" = ["samples/*.json", "samples/**/*.xml", "samples/**/*.smali", "samples/**/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+cache_dir = ".cache/pytest"
+pythonpath = ["src"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "--cov=reachscope --cov=reachscope_workbench --cov-report=term-missing --cov-fail-under=85"
+
+[tool.coverage.run]
+data_file = ".cache/coverage/.coverage"
+source = ["src/reachscope", "src/reachscope_workbench"]
+omit = ["*/tests/*", "*/modules/web/legacy/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+
+[tool.mypy]
+cache_dir = ".cache/mypy"
+python_version = "3.11"
+strict = true
+warn_unreachable = true
+pretty = true
+files = ["src/reachscope", "src/reachscope_workbench"]
+
+# apkid 是可选依赖（`.[apkid]`），本机与 CI 都不装，没有类型存根。
+[[tool.mypy.overrides]]
+module = "apkid.*"
+ignore_missing_imports = true
+
+# report 包已在 T4.1 落地，与 graph / analyze 一样按 strict 校验。
+
+[[tool.mypy.overrides]]
+module = "reachscope_workbench.modules.web.legacy.*"
+ignore_errors = true
