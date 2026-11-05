@@ -11,6 +11,9 @@ Current scope and verification: [project status](docs/releases/project-status.md
 > 本仓库从 0.14.1 起以单条提交公开；此前在私有副本中开发，[CHANGELOG.md](CHANGELOG.md)
 > 记录了那段历史，更早的版本从未在此发布。源码注释中可能出现未随仓库发布的内部规划编号。
 
+**0.15.0 场景包：** 教学场景改为数据化包（YAML + 静态页面），内置三个教学场景；
+新增 `GET /api/lab/scenarios` 与 `--scenarios-dir`；provenance 记录 `scenario_id`；见 [CHANGELOG.md](CHANGELOG.md)。
+
 **0.14.2 发布卫生：** 版本号、CI 配置与文档更新，无功能变化；见 [CHANGELOG.md](CHANGELOG.md)。
 
 **0.14.1 安全加固：** [专项安全测试日志](docs/security/security-test-log-2026-11-02.md)。

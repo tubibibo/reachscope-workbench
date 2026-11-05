@@ -5,7 +5,7 @@
 **A local, single-user workbench that turns security findings into evidence,
 remediation, and a verified close.**
 
-> Status: 0.14.2, maintained by one person. Bug reports welcome; feature requests
+> Status: 0.15.0, maintained by one person. Bug reports welcome; feature requests
 > are usually declined. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 > This repository begins at 0.14.1 in a single commit. The project was developed

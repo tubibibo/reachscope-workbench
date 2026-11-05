@@ -1,5 +1,23 @@
 # Changelog
 
+## Workbench 0.15.0 — 2026-11-06
+
+- Scenario packs: lesson content is now data (a `scenario.yaml` plus static
+  `.html`/`.txt`/`.css` pages) — adding a teaching scenario requires zero Python
+  changes and no frontend rebuild.
+- Built-in packs: missing security headers, cookie flags, CSRF token. User packs
+  load from repeatable `--scenarios-dir` roots; bad packs surface as issues
+  without taking the service down.
+- New `GET /api/lab/scenarios` lists loaded packs and load issues; `POST
+  /api/lab/start` accepts an optional `scenario_id` (unknown id → 404). Status
+  metadata (`limits.paths`, asset template name) now describes the running
+  scenario instead of the hardcoded header-teaching site.
+- Lab provenance records `scenario_id` additively; the workspace schema stays 7,
+  no migration.
+- Validation refuses path escapes, symlinks, oversize packs, case-duplicate and
+  reserved headers, malformed cookies and unknown fields.
+- Packaging: scenario packs ship in wheel and sdist; build artifacts pinned to LF.
+
 ## Workbench 0.14.2 — 2026-11-04
 
 - Add a version-consistency test locking the pyproject version, the Python

@@ -9,6 +9,7 @@
 | --- | --- |
 | 快速启动 | [五分钟上手](getting-started/quickstart.md) · [中文说明](getting-started/quickstart-zh-cn.md) |
 | 亲手体验闭环 | [本地教学](getting-started/local-lab.md) · [资产流程](getting-started/asset-workflow.md) |
+| 写一个教学场景 | [场景包作者指南](getting-started/scenario-packs.md) · [教师指南](getting-started/teaching-guide.md) |
 | 红蓝协作 | [验证与整改](getting-started/red-blue-workflow.md) |
 | 当前进展与限制 | [项目状态](releases/project-status.md) · [功能矩阵](reference/feature-matrix.json) |
 | 项目文件放在哪里 | [仓库结构和命名规范](development/repository-layout.md) |

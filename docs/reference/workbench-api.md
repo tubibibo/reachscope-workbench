@@ -481,8 +481,10 @@ overflow returns `400 INVALID_PAGE` rather than reaching the database binder.
 
 `GET /api/lab`, `POST /api/lab/start`, `POST /api/lab/configure` and
 `POST /api/lab/stop` provide explicit lifecycle; configure takes only
-`{generation:32hex,profile:baseline|hardened}`. Start/stop take no body or an empty
-object. No arbitrary target, HTML, header or port fields are accepted. Stale generation
+`{generation:32hex,profile:baseline|hardened}`. Stop takes no body or an empty object;
+start additionally accepts `{"scenario_id": "<pack id>"}` (unknown id returns
+`404 LAB_SCENARIO_NOT_FOUND`). `GET /api/lab/scenarios` lists the loaded scenario
+catalog as `{packs, issues}` (packs sorted by id; issues for packs that failed validation). No arbitrary target, HTML, header or port fields are accepted. Stale generation
 uses `409 LAB_CONFLICT`, stopped configuration `409 LAB_NOT_RUNNING`, bind failure
 `503 LAB_UNAVAILABLE`. See [lab contract](../getting-started/local-lab.md).
 

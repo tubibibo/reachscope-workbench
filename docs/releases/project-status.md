@@ -2,8 +2,18 @@
 
 > 公开源码说明：文中的历史提交号属于公开导出前的开发记录；本副本不携带该私有 Git 历史。提交号仅用于来源标识，不代表新仓库中存在对应提交。
 
-Updated: 2026-11-04. Current source and live local service: **0.14.2**.
+Updated: 2026-11-06. Current source and live local service: **0.15.0**.
 Workspace schema remains **7**. Local entry: `http://127.0.0.1:8765/`.
+
+## 0.15.0 — Scenario packs
+
+Teaching scenarios became data: a `scenario.yaml` plus static pages, loaded from
+built-in roots (`missing-headers`, `cookie-flags`, `csrf-token`) or repeatable
+`--scenarios-dir` roots. New `GET /api/lab/scenarios`; `POST /api/lab/start` accepts
+an optional `scenario_id`. Lab provenance records `scenario_id` additively —
+**workspace schema remains 7**, no migration. Validation refuses path escapes,
+symlinks, oversize packs and unknown fields; bad packs surface as issues without
+taking the service down.
 
 ## Security patch
 
