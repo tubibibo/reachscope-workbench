@@ -1113,6 +1113,51 @@ export interface components {
       /** Scenario Id */
       scenario_id?: string | null;
     };
+    /**
+     * ScenarioIssueView
+     * @description 一个坏包的诊断；source 是包声明的 id 或目录名，绝不携带文件内容。
+     */
+    ScenarioIssueView: {
+      /** Code */
+      code: string;
+      /** Message */
+      message: string;
+      /** Source */
+      source: string;
+    };
+    /** ScenarioListView */
+    ScenarioListView: {
+      /** Issues */
+      issues: components["schemas"]["ScenarioIssueView"][];
+      /** Packs */
+      packs: components["schemas"]["ScenarioPackView"][];
+    };
+    /**
+     * ScenarioPackView
+     * @description 一个已加载场景包的公开视图；OpenAPI 契约由此生成，前端引用生成类型。
+     */
+    ScenarioPackView: {
+      /**
+       * Difficulty
+       * @enum {string}
+       */
+      difficulty: "intro" | "intermediate" | "advanced";
+      /** Id */
+      id: string;
+      /**
+       * Limits
+       * @default []
+       */
+      limits: string[];
+      /** Summary */
+      summary: {
+        [key: string]: string;
+      };
+      /** Title */
+      title: {
+        [key: string]: string;
+      };
+    };
     /** ValidationError */
     ValidationError: {
       /** Context */
@@ -2914,9 +2959,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["ScenarioListView"];
         };
       };
     };

@@ -288,6 +288,7 @@ export function LocalLab({
   const candidate = candidates.find(
     (entry) => entry.source_ref === candidateId,
   );
+  const selectedPackData = packs.find((pack) => pack.id === selectedPack);
   return (
     <>
       <section className="overview-heading">
@@ -336,6 +337,9 @@ export function LocalLab({
                     : "内置响应头场景"}
                 </span>
               )}
+              {running && lab.scenario && lab.scenario.limits.length > 0 && (
+                <p>{lab.scenario.limits.slice(0, 3).join("；")}</p>
+              )}
               {packIssues.length > 0 && (
                 <p>
                   {packIssues.length} 个场景包加载失败：
@@ -362,6 +366,13 @@ export function LocalLab({
                   ))}
                 </select>
               )}
+              {!running &&
+                selectedPackData &&
+                (selectedPackData.limits ?? []).length > 0 && (
+                  <p>
+                    {(selectedPackData.limits ?? []).slice(0, 3).join("；")}
+                  </p>
+                )}
               <button
                 className="button button-primary"
                 disabled={Boolean(busy) || running}

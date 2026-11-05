@@ -606,6 +606,105 @@
         "title": "LabStart",
         "type": "object"
       },
+      "ScenarioIssueView": {
+        "additionalProperties": false,
+        "description": "一个坏包的诊断；source 是包声明的 id 或目录名，绝不携带文件内容。",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "code",
+          "message"
+        ],
+        "title": "ScenarioIssueView",
+        "type": "object"
+      },
+      "ScenarioListView": {
+        "additionalProperties": false,
+        "properties": {
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/ScenarioIssueView"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "packs": {
+            "items": {
+              "$ref": "#/components/schemas/ScenarioPackView"
+            },
+            "title": "Packs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "packs",
+          "issues"
+        ],
+        "title": "ScenarioListView",
+        "type": "object"
+      },
+      "ScenarioPackView": {
+        "additionalProperties": false,
+        "description": "一个已加载场景包的公开视图；OpenAPI 契约由此生成，前端引用生成类型。",
+        "properties": {
+          "difficulty": {
+            "enum": [
+              "intro",
+              "intermediate",
+              "advanced"
+            ],
+            "title": "Difficulty",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "limits": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Limits",
+            "type": "array"
+          },
+          "summary": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Summary",
+            "type": "object"
+          },
+          "title": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Title",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "summary",
+          "difficulty"
+        ],
+        "title": "ScenarioPackView",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -3201,9 +3300,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Scenarios Api Lab Scenarios Get",
-                  "type": "object"
+                  "$ref": "#/components/schemas/ScenarioListView"
                 }
               }
             },

@@ -153,7 +153,7 @@ def test_scenario_serves_route_status_and_body(tmp_path: Path) -> None:
         started = lab.start("alpha-pack")
         assert started["status"] == "running"
         assert started["scenario"] == {"id": "alpha-pack", "title": {"en": "Cookie Flags", "zh": "Cookie 标志"},
-                                       "difficulty": "intro"}
+                                       "difficulty": "intro", "limits": []}
         with httpx.Client(trust_env=False, timeout=2) as client:
             home = client.get(started["url"])
             notes = client.get(started["url"].rstrip("/") + "/notes.txt")
@@ -311,6 +311,7 @@ def test_scenarios_endpoint_lists_packs_and_issues(tmp_path: Path) -> None:
     assert payload["packs"][0]["title"] == {"en": "Cookie Flags", "zh": "Cookie 标志"}
     assert payload["packs"][0]["difficulty"] == "intro"
     assert len(payload["packs"][0]["summary"]) == 2
+    assert payload["packs"][0]["limits"] == []
     assert [issue["source"] for issue in payload["issues"]] == ["broken-pack"]
     assert payload["issues"][0]["code"] == "SCENARIO_FORMAT_UNSUPPORTED"
     assert payload["issues"][0]["message"]
@@ -371,7 +372,52 @@ def test_status_204_sends_no_body(tmp_path: Path) -> None:
             home = client.get(started["url"])
         assert response.status_code == 204 and response.content == b""
         assert response.headers["content-length"] == "0"
-        assert response.headers["x-reachscope-lab-profile"] == "baseline"
+        assert response.headers["X-ReachScope-Lab-Profile"] == "baseline"
         assert home.status_code == 200 and home.content == _ALPHA_INDEX.encode("utf-8")
+    finally:
+        lab.stop()
+
+
+def test_response_plan_is_coherent_across_profile_switch(tmp_path: Path) -> None:
+    """FIX-02：一次取锁的应答计划——profile、响应头与 generation 同源，切换剖面不产生杂交响应。"""
+    packs_root = tmp_path / "packs"
+    _write_pack(packs_root, "alpha-pack", _ALPHA_MANIFEST,
+                {"pages/index.html": _ALPHA_INDEX, "pages/notes.txt": _NOTES})
+    lab = _make_lab(packs_root)
+    try:
+        started = lab.start("alpha-pack")
+        lab.configure(started["generation"], "hardened")
+        plan = lab.response_for("/")
+        assert plan is not None and plan["ready"] and plan["status"] == 200
+        headers = dict(plan["headers"])
+        assert headers["X-ReachScope-Lab-Profile"] == "hardened"
+        assert headers["X-Frame-Options"] == "DENY"
+        assert headers["X-ReachScope-Lab-Generation"] == lab.status()["generation"]
+        assert lab.response_for("/undeclared") is None
+        lab.stop()
+        assert lab.response_for("/") == {"ready": False}
+    finally:
+        lab.stop()
+
+
+def test_scenario_status_metadata_reflects_routes_and_title(tmp_path: Path) -> None:
+    """FIX-03：场景模式下 limits.paths 是当前剖面路由键排序、资产名含场景标题；legacy 一字不动。"""
+    packs_root = tmp_path / "packs"
+    _write_pack(packs_root, "alpha-pack", _ALPHA_MANIFEST,
+                {"pages/index.html": _ALPHA_INDEX, "pages/notes.txt": _NOTES})
+    lab = _make_lab(packs_root)
+    try:
+        legacy = lab.start()
+        assert legacy["limits"]["paths"] == ["/"]
+        assert legacy["asset_template"] is not None
+        assert legacy["asset_template"]["name"] == "本地教学站点 / HTTP 响应头补强"
+        scenario = lab.start("alpha-pack")
+        assert scenario["limits"]["paths"] == ["/", "/notes.txt"]
+        assert scenario["asset_template"] is not None
+        assert scenario["asset_template"]["name"] == "Cookie 标志 / baseline"
+        hardened = lab.configure(scenario["generation"], "hardened")
+        assert hardened["limits"]["paths"] == ["/", "/notes.txt"]
+        assert hardened["asset_template"] is not None
+        assert hardened["asset_template"]["name"] == "Cookie 标志 / hardened"
     finally:
         lab.stop()

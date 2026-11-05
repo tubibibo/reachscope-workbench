@@ -9,6 +9,7 @@ recursive-include examples *.py *.md *.json
 global-exclude *.py[cod] .coverage *.apk *.dex *.odex
 
 recursive-include src/reachscope_workbench/static *
+recursive-include src/reachscope_workbench/scenarios *
 recursive-include src/reachscope_workbench/modules/web/legacy/rules *.yaml
 include src/reachscope_workbench/modules/web/legacy/LICENSE
 recursive-include src/reachscope_workbench/modules *.md

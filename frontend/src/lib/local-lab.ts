@@ -11,23 +11,15 @@ export interface LabState {
     id: string;
     title: Record<string, string>;
     difficulty: string;
+    limits: string[];
   } | null;
   url: string | null;
   source: { kind: "local_training"; label: string; production: false };
   asset_template: { kind: "website"; name: string; source: Data } | null;
   limitations: string[];
 }
-export interface ScenarioSummary {
-  id: string;
-  title: Record<string, string>;
-  summary: Record<string, string>;
-  difficulty: string;
-}
-export interface ScenarioIssue {
-  source: string;
-  code: string;
-  message: string;
-}
+export type ScenarioSummary = components["schemas"]["ScenarioPackView"];
+export type ScenarioIssue = components["schemas"]["ScenarioIssueView"];
 export const labApi = {
   state: (signal?: AbortSignal) => request<LabState>("/lab", { signal }),
   scenarios: (signal?: AbortSignal) =>

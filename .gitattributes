@@ -16,6 +16,8 @@
 *.css  text eol=lf
 *.html text eol=lf
 *.ps1  text eol=lf
+# B2：前端构建产物（仓库内唯一的 .js）钉死 LF，防止 autocrlf 在 checkout 时改写
+*.js  text eol=lf
 .gitignore text eol=lf
 .gitattributes text eol=lf
 /.dockerignore text eol=lf
