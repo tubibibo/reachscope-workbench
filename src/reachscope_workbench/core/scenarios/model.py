@@ -18,7 +18,9 @@ MAX_COOKIES: Final = 4
 MAX_EXPECTATIONS: Final = 16
 MAX_HEADER_VALUE: Final = 512
 MAX_COOKIE_PART: Final = 128
-ID_PATTERN: Final = re.compile(r"[a-z0-9][a-z0-9-]{1,40}\Z")
+# id 文法的单一来源：加载器用 \Z 全文匹配，API 字段用 ^...$，两者由同一文本拼装。
+ID_PATTERN_TEXT: Final = r"[a-z0-9][a-z0-9-]{1,40}"
+ID_PATTERN: Final = re.compile(ID_PATTERN_TEXT + r"\Z")
 ALLOWED_PROFILES: Final = frozenset({"baseline", "hardened"})
 ALLOWED_BODY_SUFFIXES: Final = frozenset({".html", ".txt", ".css"})
 
@@ -96,10 +98,14 @@ class ScenarioProfile(BaseModel):
     @field_validator("headers")
     @classmethod
     def _headers_within_allowlist(cls, value: dict[str, str]) -> dict[str, str]:
+        seen: set[str] = set()
         for name, header_value in value.items():
             lowered = name.lower()
             if not name or name != name.strip():
                 raise ValueError(f"响应头名字为空或含首尾空白：{name!r}")
+            if lowered in seen:
+                raise ValueError(f"响应头 {name!r} 与先前条目仅大小写不同，会作为重复头发送，浏览器取哪个不确定")
+            seen.add(lowered)
             if lowered in RESERVED_HEADERS or lowered.startswith(RESERVED_HEADER_PREFIX):
                 raise ValueError(f"响应头 {name!r} 是运行时保留头，作者不能设置")
             if lowered not in ALLOWED_HEADERS:
@@ -141,8 +147,14 @@ class ScenarioProfile(BaseModel):
         for key in value:
             if not key.startswith("/"):
                 raise ValueError(f"路由键必须以 / 开头：{key!r}")
-            if "?" in key or "#" in key or ".." in key:
+            # 与 Location 同一口径：浏览器把 \ 当分隔符、把 // 当协议相对，
+            # 控制字符会被剔除或截断——这类键要么不可达，要么教坏作者。
+            if key.startswith("//"):
+                raise ValueError(f"路由键不许以 // 开头：{key!r}")
+            if "?" in key or "#" in key or ".." in key or "\\" in key:
                 raise ValueError(f"路由键含非法字符：{key!r}")
+            if any(not " " <= char <= "~" for char in key):
+                raise ValueError(f"路由键含控制字符：{key!r}")
         return value
 
 

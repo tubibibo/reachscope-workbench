@@ -7,6 +7,7 @@ from typing import Any, Literal
 from fastapi import APIRouter
 from pydantic import BaseModel, ConfigDict, Field
 
+from ..core.scenarios.model import ID_PATTERN_TEXT
 from ..integrations.local_lab import LocalLab
 from .contracts import Payload
 
@@ -52,7 +53,7 @@ class ScenarioListView(BaseModel):
 class LabStart(Payload):
     """请求体可整体省略或传 {}：两者都走内置默认场景；带 id 则启动指定场景包。"""
 
-    scenario_id: str | None = Field(default=None, pattern=r"^[a-z0-9][a-z0-9-]{1,40}$")
+    scenario_id: str | None = Field(default=None, pattern="^" + ID_PATTERN_TEXT + "$")
 
 
 def lab_router(lab: LocalLab) -> APIRouter:

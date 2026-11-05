@@ -123,8 +123,8 @@ class ScenarioLoader:
     def _check_size(self, pack_dir: Path, pack_issues: list[ScenarioIssue]) -> None:
         total = 0
         for path in pack_dir.rglob("*"):
-            if path.is_symlink():
-                continue
+            # rglob 不递归目录符号链接；文件符号链接按 stat()（跟随链接）计入预算，
+            # 否则包内链接可以指向外部大文件绕过 2 MiB 上限。
             if path.is_file():
                 total += path.stat().st_size
         if total > MAX_PACK_BYTES:

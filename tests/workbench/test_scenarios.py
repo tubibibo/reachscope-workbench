@@ -306,3 +306,48 @@ def test_deeply_nested_yaml_is_an_issue_not_a_crash(tmp_path: Path) -> None:
     catalog = ScenarioLoader([tmp_path]).discover()
     assert [issue.code for issue in catalog.issues] == [SCENARIO_INVALID]
     assert catalog.packs == {}
+
+
+def test_duplicate_headers_differing_only_by_case_rejected(tmp_path: Path) -> None:
+    """FIX-09：仅大小写不同的重复响应头名拒绝——两个都会发出去，浏览器取哪个不确定。"""
+    routes = {"/": {"body": "pages/index.html", "status": 200}}
+    _write_pack(tmp_path, _valid_pack(profiles={
+        "baseline": {"headers": {"X-Frame-Options": "DENY", "x-frame-options": "SAMEORIGIN"}, "cookies": [], "routes": routes},
+        "hardened": {"headers": {}, "cookies": [], "routes": routes},
+    }))
+    _assert_rejected(tmp_path, SCENARIO_INVALID)
+
+
+def test_route_keys_reject_double_slash_backslash_and_control_chars(tmp_path: Path) -> None:
+    """FIX-10：路由键与 Location 同口径——拒 // 前缀、反斜杠与控制字符。"""
+    hardened = {"routes": {"/": {"body": "pages/index.html"}}}
+    for index, bad in enumerate(("//link", "/a\b", "/x\ny")):
+        pack = _valid_pack(profiles={
+            "baseline": {"headers": {}, "cookies": [], "routes": {"/": {"body": "pages/index.html"}, bad: {"body": "pages/index.html"}}},
+            "hardened": hardened,
+        })
+        root = tmp_path / f"case{index}"
+        _write_pack(root, pack)
+        _assert_rejected(root, SCENARIO_INVALID)
+
+
+def test_symlinked_file_counts_toward_size_budget(tmp_path: Path) -> None:
+    """FIX-11：包内文件符号链接按跟随后的真实大小计入 2 MiB 预算，不能借链接绕过。"""
+    outside = tmp_path / "outside.bin"
+    outside.write_bytes(b"x" * (2 * 1024 * 1024 + 1))
+    root = tmp_path / "packs"
+    pack_dir = _write_pack(root, _valid_pack())
+    try:
+        (pack_dir / "linked.bin").symlink_to(outside)
+    except OSError:
+        pytest.skip("Windows 无符号链接权限")
+    _assert_rejected(root, SCENARIO_TOO_LARGE)
+
+
+def test_scenario_id_pattern_has_single_source() -> None:
+    """FIX-12：id 文法单一来源——API 字段模式由 model 的文本拼装，两处不再各写一份。"""
+    from reachscope_workbench.api.lab import LabStart
+    from reachscope_workbench.core.scenarios.model import ID_PATTERN_TEXT
+
+    pattern = LabStart.model_fields["scenario_id"].metadata[0].pattern
+    assert pattern == "^" + ID_PATTERN_TEXT + "$"
