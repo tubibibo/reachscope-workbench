@@ -39,3 +39,17 @@ def test_gitattributes_pins_build_artifacts_to_lf() -> None:
     """构建产物 .js 必须钉死 LF，防止 autocrlf 在 checkout 时把工作树改成 CRLF。"""
     lines = (ROOT / ".gitattributes").read_text(encoding="utf-8").splitlines()
     assert any(" ".join(line.split()) == "*.js text eol=lf" for line in lines)
+
+
+def test_builtin_packs_load_clean() -> None:
+    """随仓库分发的三个内置包必须被真实 loader 全量加载：0 issue、id 与目录一致。"""
+    from reachscope_workbench.api.app import BUILTIN_SCENARIOS
+    from reachscope_workbench.core.scenarios.loader import ScenarioLoader
+
+    catalog = ScenarioLoader([BUILTIN_SCENARIOS]).discover()
+    assert catalog.issues == ()
+    assert set(catalog.packs) == {"missing-headers", "cookie-flags", "csrf-token"}
+    for pack_id, loaded in catalog.packs.items():
+        assert loaded.root.name == pack_id, "目录名必须与包 id 一致"
+        assert loaded.pack.limits, "每个内置包都应自带边界自述"
+        assert (loaded.root / "walkthrough.md").is_file()

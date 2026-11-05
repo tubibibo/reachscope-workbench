@@ -307,7 +307,9 @@ def test_scenarios_endpoint_lists_packs_and_issues(tmp_path: Path) -> None:
     app = create_app(tmp_path / "workspace", scenarios_dirs=(packs_root,))
     with TestClient(app) as client:
         payload = client.get("/api/lab/scenarios").json()
-    assert [pack["id"] for pack in payload["packs"]] == ["alpha-pack", "beta-pack"]
+    # create_app 同时装配内置根：三个真实内置包与测试包按 id 混排。
+    expected_ids = sorted({"alpha-pack", "beta-pack", "missing-headers", "cookie-flags", "csrf-token"})
+    assert [pack["id"] for pack in payload["packs"]] == expected_ids
     assert payload["packs"][0]["title"] == {"en": "Cookie Flags", "zh": "Cookie 标志"}
     assert payload["packs"][0]["difficulty"] == "intro"
     assert len(payload["packs"][0]["summary"]) == 2
@@ -419,5 +421,29 @@ def test_scenario_status_metadata_reflects_routes_and_title(tmp_path: Path) -> N
         assert hardened["limits"]["paths"] == ["/", "/notes.txt"]
         assert hardened["asset_template"] is not None
         assert hardened["asset_template"]["name"] == "Cookie 标志 / hardened"
+    finally:
+        lab.stop()
+
+
+def test_builtin_csrf_token_serves_and_reports(tmp_path: Path) -> None:
+    """FIX-03 验收（真实 csrf-token 包）：limits.paths 含 /transfer，资产名含场景标题；/transfer 可服务。"""
+    from reachscope_workbench.api.app import BUILTIN_SCENARIOS
+    from reachscope_workbench.core.scenarios.loader import ScenarioLoader
+
+    lab = LocalLab(catalog=ScenarioLoader([BUILTIN_SCENARIOS]).discover())
+    try:
+        started = lab.start("csrf-token")
+        assert started["scenario"] is not None and started["scenario"]["id"] == "csrf-token"
+        assert "/transfer" in started["limits"]["paths"]
+        assert started["asset_template"] is not None
+        assert "CSRF" in started["asset_template"]["name"] or "csrf" in started["asset_template"]["name"]
+        assert started["asset_template"]["name"].endswith("/ baseline")
+        plan = lab.response_for("/transfer")
+        assert plan is not None and plan["ready"] and plan["status"] in {200, 403}
+        hardened = lab.configure(started["generation"], "hardened")
+        after = lab.response_for("/transfer")
+        assert after is not None and after["ready"]
+        assert dict(after["headers"])["X-ReachScope-Lab-Profile"] == "hardened"
+        assert hardened["limits"]["paths"] == ["/", "/transfer"]
     finally:
         lab.stop()

@@ -1,0 +1,38 @@
+pack_format: 1
+id: csrf-token
+title:
+  en: CSRF on a state-changing GET
+  zh: 状态变更型 GET 的 CSRF 面
+summary:
+  en: The same /transfer link, once accepted without any check and once rejected with 403.
+  zh: 同一个 /transfer 链接，一次无任何校验直接接受，一次返回 403 拒绝。
+difficulty: intermediate
+profiles:
+  baseline:
+    headers:
+      Content-Type: "text/html; charset=utf-8"
+    cookies: []
+    routes:
+      "/":
+        body: pages/index.html
+        status: 200
+      "/transfer":
+        body: pages/accepted.html
+        status: 200
+  hardened:
+    headers:
+      Content-Type: "text/html; charset=utf-8"
+    cookies: []
+    routes:
+      "/":
+        body: pages/index.html
+        status: 200
+      "/transfer":
+        body: pages/rejected.html
+        status: 403
+expectations:
+  - {field: status, baseline: 200, hardened: 403}
+limits:
+  - 只演示固定响应的配置差异：接受页与拒绝页都是预先写好的静态内容，服务端并未实现任何令牌校验。
+  - 页面不加载任何外部资源。
+  - 不提供可被攻击者使用的跨站表单或脚本，不构成真实漏洞靶场。

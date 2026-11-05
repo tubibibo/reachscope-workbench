@@ -1,0 +1,40 @@
+pack_format: 1
+id: missing-headers
+title:
+  en: Missing security headers
+  zh: 安全响应头缺失
+summary:
+  en: The same page, once without security headers and once with them.
+  zh: 同一个页面，一次不带安全响应头，一次带上。
+difficulty: intro
+profiles:
+  baseline:
+    headers:
+      Content-Type: "text/html; charset=utf-8"
+    cookies: []
+    routes:
+      "/":
+        body: pages/index.html
+        status: 200
+  hardened:
+    headers:
+      Content-Type: "text/html; charset=utf-8"
+      X-Content-Type-Options: nosniff
+      X-Frame-Options: DENY
+      Referrer-Policy: no-referrer
+      Content-Security-Policy: "default-src 'none'"
+    cookies: []
+    routes:
+      "/":
+        body: pages/index.html
+        status: 200
+expectations:
+  - {field: status, baseline: 200, hardened: 200}
+  - {field: headers.x-content-type-options, baseline: null, hardened: nosniff}
+  - {field: headers.x-frame-options, baseline: null, hardened: DENY}
+  - {field: headers.referrer-policy, baseline: null, hardened: no-referrer}
+  - {field: headers.content-security-policy, baseline: null, hardened: "default-src 'none'"}
+limits:
+  - 只演示固定响应的配置差异，不包含可利用漏洞。
+  - 页面不加载任何外部资源。
+  - 只覆盖演示中列出的四个响应头，不代表完整的安全头清单，也不代表完成一次安全审计。

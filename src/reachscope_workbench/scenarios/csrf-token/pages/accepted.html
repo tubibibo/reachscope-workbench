@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>转账已接受（教学演示） · 本地教学页面</title>
+<style>
+  body { margin: 0; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f5f6f8; color: #1c2430; line-height: 1.7; }
+  .banner { margin: 0; padding: 10px 20px; background: #b3261e; color: #fff; font-size: 14px; }
+  main { max-width: 760px; margin: 24px auto; padding: 24px 28px; background: #fff; border: 1px solid #d9dee5; border-radius: 8px; }
+  h1 { font-size: 22px; margin-top: 0; color: #1a7f37; }
+  code { background: #eef1f5; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .note { background: #fdecea; border-left: 4px solid #b3261e; padding: 8px 12px; margin: 12px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<p class="banner">这是 ReachScope 的本地教学页面，只在本机回环地址上提供固定内容，不是真实网站。</p>
+<main>
+<h1>转账请求已接受（200）</h1>
+<p>你访问的是 <code>/transfer</code>。当前剖面是 <strong>baseline</strong>：服务端对这次请求<strong>没有任何校验</strong>——没有令牌、没有来源检查、没有二次确认，请求直接被接受。</p>
+<p>这不是一个"运行正确的转账功能"。它演示的是一种常见缺陷：<strong>用 GET 承载状态变更，并且不校验请求是否来自用户本人的真实意图</strong>。攻击者只需要诱使已登录的用户点开一个链接（或加载一张图片），就能以用户的身份触发同样的 GET。</p>
+<p class="note">本页面是预先写好的固定内容，没有任何真实的转账、令牌校验或后端逻辑。切到 hardened 剖面再访问同一条路径，观察状态码与页面的变化。</p>
+</main>
+</body>
+</html>

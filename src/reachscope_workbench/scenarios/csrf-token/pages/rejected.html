@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>请求被拒绝（403） · 本地教学页面</title>
+<style>
+  body { margin: 0; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f5f6f8; color: #1c2430; line-height: 1.7; }
+  .banner { margin: 0; padding: 10px 20px; background: #b3261e; color: #fff; font-size: 14px; }
+  main { max-width: 760px; margin: 24px auto; padding: 24px 28px; background: #fff; border: 1px solid #d9dee5; border-radius: 8px; }
+  h1 { font-size: 22px; margin-top: 0; color: #b3261e; }
+  code { background: #eef1f5; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .note { background: #fff8e1; border-left: 4px solid #f0a800; padding: 8px 12px; margin: 12px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<p class="banner">这是 ReachScope 的本地教学页面，只在本机回环地址上提供固定内容，不是真实网站。</p>
+<main>
+<h1>请求被拒绝（403）</h1>
+<p>你访问的是 <code>/transfer</code>。当前剖面是 <strong>hardened</strong>：这条状态变更型的 GET 请求被拒绝，返回 403。</p>
+<p>在生产系统里，"拒绝"应当来自真实的防护机制：CSRF 令牌校验、Cookie 的 SameSite 属性、校验请求来源与意图、或把状态变更改为非 GET 方法并要求用户确认。本场景只是把"应当拒绝"这一<strong>行为结果</strong>用固定响应演示出来，让对比变得可见。</p>
+<p class="note">返回 403 不等于实现了这些机制——场景包只会返回写好的静态内容。真实的校验逻辑必须由应用自己实现。请记录两个剖面访问同一路径时的状态码差异。</p>
+</main>
+</body>
+</html>

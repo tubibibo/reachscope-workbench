@@ -1,0 +1,34 @@
+pack_format: 1
+id: cookie-flags
+title:
+  en: Cookie flags
+  zh: Cookie 安全属性
+summary:
+  en: The same session cookie, once bare and once with HttpOnly, Secure and SameSite.
+  zh: 同一个会话 Cookie，一次裸奔，一次带上 HttpOnly、Secure 与 SameSite。
+difficulty: intro
+profiles:
+  baseline:
+    headers:
+      Content-Type: "text/html; charset=utf-8"
+    cookies:
+      - "session=demo123; Path=/"
+    routes:
+      "/":
+        body: pages/index.html
+        status: 200
+  hardened:
+    headers:
+      Content-Type: "text/html; charset=utf-8"
+    cookies:
+      - "session=demo123; Path=/; HttpOnly; Secure; SameSite=Lax"
+    routes:
+      "/":
+        body: pages/index.html
+        status: 200
+expectations:
+  - {field: status, baseline: 200, hardened: 200}
+limits:
+  - 只演示固定响应的配置差异，不包含可利用漏洞。
+  - 页面不加载任何外部资源。
+  - Cookie 差异不在当前 expectations 文法（仅 status 与响应头）的覆盖范围内，请在证据面板或浏览器开发者工具中查看 Set-Cookie。

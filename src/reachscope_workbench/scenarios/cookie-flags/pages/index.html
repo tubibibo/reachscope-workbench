@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Cookie 安全属性 · 本地教学页面</title>
+<style>
+  body { margin: 0; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f5f6f8; color: #1c2430; line-height: 1.7; }
+  .banner { margin: 0; padding: 10px 20px; background: #b3261e; color: #fff; font-size: 14px; }
+  main { max-width: 760px; margin: 24px auto; padding: 24px 28px; background: #fff; border: 1px solid #d9dee5; border-radius: 8px; }
+  h1 { font-size: 22px; margin-top: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #d9dee5; padding: 6px 10px; text-align: left; font-size: 14px; }
+  th { background: #eef1f5; }
+  code { background: #eef1f5; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .note { background: #fff8e1; border-left: 4px solid #f0a800; padding: 8px 12px; margin: 12px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<p class="banner">这是 ReachScope 的本地教学页面，只在本机回环地址上提供固定内容，不是真实网站。</p>
+<main>
+<h1>Cookie 安全属性（cookie-flags）</h1>
+<p>两个剖面都会在响应里用 <code>Set-Cookie</code> 下发同一个会话 Cookie <code>session=demo123</code>，页面内容完全相同。差异在 Cookie 带的安全属性上：</p>
+<table>
+  <tr><th>属性</th><th>防的是什么</th></tr>
+  <tr><td><code>HttpOnly</code></td><td>禁止页面里的脚本通过 <code>document.cookie</code> 读到这个 Cookie，降低 XSS 偷走会话的影响。</td></tr>
+  <tr><td><code>Secure</code></td><td>只允许在加密连接（HTTPS）上携带这个 Cookie，防止明文信道泄露。</td></tr>
+  <tr><td><code>SameSite=Lax</code></td><td>限制跨站请求携带 Cookie，缓解 CSRF 这类"借你的身份发请求"的攻击。</td></tr>
+  <tr><td><code>Path=/</code></td><td>限定 Cookie 的作用路径。它只是作用域声明，不是安全属性。</td></tr>
+</table>
+<p class="note">观察方法：浏览器开发者工具的<strong>应用/存储</strong>标签里查看 Cookie 列表，或在<strong>网络</strong>面板里查看这条响应的 <code>Set-Cookie</code> 头。注意 HttpOnly 的 Cookie 在网络面板里仍然可见，只是脚本读不到。</p>
+<p>先在 baseline 剖面访问一次，记下 Set-Cookie 的完整内容；再切换到 hardened 剖面对比。</p>
+</main>
+</body>
+</html>
