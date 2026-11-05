@@ -30,6 +30,7 @@ class JobRunner:
         self.stopping = False
         self._submission_lock = asyncio.Lock()
         self._reserved = 0
+        self._loop: asyncio.AbstractEventLoop | None = None
         (data_dir / "jobs").mkdir(parents=True, exist_ok=True)
         (data_dir / "uploads").mkdir(parents=True, exist_ok=True)
 
@@ -46,6 +47,7 @@ class JobRunner:
         self.queue = asyncio.Queue(maxsize=self.queue.maxsize)
         self._submission_lock = asyncio.Lock()
         self._reserved = 0
+        self._loop = asyncio.get_running_loop()
         self.stopping = False
         try:
             queued = await asyncio.to_thread(self.repository.recover)
@@ -71,6 +73,26 @@ class JobRunner:
             worker.cancel()
         await asyncio.gather(*self.workers, return_exceptions=True)
         self.workers.clear()
+        self._loop = None
+
+    def _enqueue(self, job_id: str) -> None:
+        """Marshalled enqueue for foreign threads: a bare put_nowait from another
+        thread mutates asyncio.Queue waiters without waking the selector. Callers
+        already on the runner's own loop enqueue directly so queue.join() keeps
+        seeing just-submitted jobs synchronously; with no loop (runner never
+        started) there are no waiters and the direct put is safe."""
+        loop = self._loop
+        if loop is None or not loop.is_running():
+            self.queue.put_nowait(job_id)
+            return
+        try:
+            running = asyncio.get_running_loop()
+        except RuntimeError:
+            running = None
+        if running is loop:
+            self.queue.put_nowait(job_id)
+        else:
+            loop.call_soon_threadsafe(self.queue.put_nowait, job_id)
 
     def submit(self, module_id: str, name: str, config: dict[str, Any], *, asset_id: str | None = None,
                idempotency_key: str | None = None) -> dict[str, Any]:
@@ -106,7 +128,7 @@ class JobRunner:
         self._check_capacity()
         job, created = self._persist(module_id, display_name, normalized, asset_id, idempotency_key, fingerprint)
         if created:
-            self.queue.put_nowait(job["id"])
+            self._enqueue(job["id"])
         return job
 
     def _prepare(self, module_id: str, name: str, config: dict[str, Any], asset_id: str | None,
@@ -164,7 +186,7 @@ class JobRunner:
                 job, created = await asyncio.to_thread(
                     self._persist, module_id, display_name, normalized, asset_id, idempotency_key, fingerprint)
                 if created:
-                    self.queue.put_nowait(job["id"])
+                    self._enqueue(job["id"])
                 return job
             finally:
                 self._reserved -= 1

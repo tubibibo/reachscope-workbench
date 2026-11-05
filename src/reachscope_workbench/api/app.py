@@ -8,7 +8,9 @@ import json
 import logging
 import re
 import sqlite3
+import threading
 import time
+import weakref
 from collections.abc import AsyncIterator, Sequence
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -50,6 +52,10 @@ IDENTIFIER = re.compile(r"[a-f0-9]{32}\Z")
 MAX_UPLOAD = 256 * 1024 * 1024
 # Built-in scenario packs ship inside the package; user roots are appended at runtime.
 BUILTIN_SCENARIOS = Path(__file__).resolve().parents[1] / "scenarios"
+# Per-process registry of live app instances per workspace (weak: apps that never
+# start a lifespan — contract generation, tooling — age out on collection).
+_ACTIVE_WORKSPACES: weakref.WeakKeyDictionary[Any, str] = weakref.WeakKeyDictionary()
+_WORKSPACE_GUARD = threading.Lock()
 
 
 def _identifier(value: str) -> str:
@@ -74,17 +80,7 @@ def create_app(data_dir: Path, registry: ModuleRegistry | None = None, *, adviso
     scenario_catalog = ScenarioLoader([BUILTIN_SCENARIOS, *scenarios_dirs]).discover()
     lab = LocalLab(catalog=scenario_catalog)
     lock = WorkspaceLock(directory)
-    # Migration is a write too: never upgrade a workspace owned by another server.
-    # Release this short initialization lease when no lifespan has started yet.
-    lock.acquire()
-    try:
-        repository = JobRepository(directory / "workbench.sqlite3")
-        inventory = AssetRepository(repository)
-        inspections = InspectionService(inventory, modules, directory / "uploads")
-        runner = JobRunner(repository, modules, directory)
-        advisory = AdvisoryService(repository, advisory_provider or ChatCompletionsProvider())
-    finally:
-        lock.release()
+    resolved = str(directory)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -104,9 +100,30 @@ def create_app(data_dir: Path, registry: ModuleRegistry | None = None, *, adviso
                         await asyncio.to_thread(lab.stop)
                     finally:
                         lock.release()
+                        _ACTIVE_WORKSPACES.pop(_, None)
 
-    app = FastAPI(title="ReachScope Workbench", version=__version__, lifespan=lifespan,
-                  docs_url=None, redoc_url=None)
+    with _WORKSPACE_GUARD:
+        if resolved in _ACTIVE_WORKSPACES.values():
+            raise WorkbenchError("WORKSPACE_BUSY", "这个进程已经有一个实例在用这个工作目录")
+        # Migration is a write too: never upgrade a workspace owned by another server.
+        lock.acquire()
+        try:
+            repository = JobRepository(directory / "workbench.sqlite3")
+            inventory = AssetRepository(repository)
+            inspections = InspectionService(inventory, modules, directory / "uploads")
+            runner = JobRunner(repository, modules, directory)
+            advisory = AdvisoryService(repository, advisory_provider or ChatCompletionsProvider())
+        finally:
+            lock.release()
+        app = FastAPI(title="ReachScope Workbench", version=__version__, lifespan=lifespan,
+                      docs_url=None, redoc_url=None)
+        # The registry closes the create→lifespan gap in-process; the OS lease
+        # arbitrates across processes at lifespan start. A finalizer on the app
+        # cannot do this job: FastAPI apps are cyclically referenced (release
+        # would wait for cyclic GC), and an open lock handle blocks workspace
+        # cleanup on Windows for tooling that never starts a lifespan.
+        _ACTIVE_WORKSPACES[app] = resolved
+
     app.state.repository, app.state.runner = repository, runner
     app.state.advisory = advisory
     app.state.lab = lab
@@ -318,7 +335,7 @@ def create_app(data_dir: Path, registry: ModuleRegistry | None = None, *, adviso
 
     @app.get("/api/jobs/{job_id}/evidence/{evidence_id}")
     async def evidence(job_id: str, evidence_id: str) -> dict[str, Any]:
-        result = completed(job_id)["result"]
+        result = (await asyncio.to_thread(completed, job_id))["result"]
         selected = next((item for item in result["evidence"] if item["id"] == evidence_id), None)
         if selected is None:
             raise WorkbenchError("EVIDENCE_NOT_FOUND", "该任务没有这条证据")
@@ -359,12 +376,12 @@ def create_app(data_dir: Path, registry: ModuleRegistry | None = None, *, adviso
     async def compare(job_id: str, baseline: str = Query(min_length=32, max_length=32)) -> dict[str, Any]:
         from ..modules.web.comparison import compare_jobs
 
-        current, previous = completed(job_id), completed(baseline)
+        current, previous = await asyncio.to_thread(completed, job_id), await asyncio.to_thread(completed, baseline)
         return await asyncio.to_thread(compare_jobs, previous, current)
 
     @app.get("/api/jobs/{job_id}/export")
     async def export(job_id: str, format: Literal["json", "html", "csv"] = "json") -> Response:
-        item = completed(job_id)
+        item = await asyncio.to_thread(completed, job_id)
         if format == "json":
             content = json.dumps(item, ensure_ascii=False, indent=2)
             return Response(content, media_type="application/json",

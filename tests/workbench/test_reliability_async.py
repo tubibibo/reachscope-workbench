@@ -285,3 +285,22 @@ async def test_stop_waits_for_pending_worker_transition_without_late_running_sta
     final = repository.get(run["id"])
     assert final["status"] == "failed" and final["error"]["code"] == "INTERRUPTED"
     assert not runner.workers and not runner.active
+
+
+@pytest.mark.asyncio
+async def test_sync_submit_from_other_thread_is_marshalled_to_runner_loop(tmp_path: Path) -> None:
+    """F-003：同步 submit 从其他线程调用时经 call_soon_threadsafe 编组入队，任务照常执行完成。"""
+    repository, runner = make_runner(tmp_path)
+    await runner.start()
+    try:
+        job = await asyncio.to_thread(runner.submit, "test", "From thread", {})
+        deadline = asyncio.get_running_loop().time() + 5
+        current: dict[str, Any] = {}
+        while asyncio.get_running_loop().time() < deadline:
+            current = await asyncio.to_thread(repository.get, job["id"])
+            if current["status"] == "completed":
+                break
+            await asyncio.sleep(.02)
+        assert current.get("status") == "completed", "跨线程同步提交必须到达 runner 循环并执行完成"
+    finally:
+        await runner.stop()
