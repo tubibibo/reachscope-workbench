@@ -9,7 +9,7 @@ import logging
 import re
 import sqlite3
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated, Any, Literal, cast
@@ -34,6 +34,7 @@ from ..core.models import WorkbenchError
 from ..core.registry import ModuleRegistry
 from ..core.repository import JobRepository
 from ..core.runner import JobRunner
+from ..core.scenarios.loader import ScenarioLoader
 from ..integrations.ai_provider import ChatCompletionsProvider
 from ..integrations.local_lab import LocalLab
 from .advisory import advisory_router
@@ -47,6 +48,8 @@ from .limits import RequestBudgetMiddleware
 logger = logging.getLogger(__name__)
 IDENTIFIER = re.compile(r"[a-f0-9]{32}\Z")
 MAX_UPLOAD = 256 * 1024 * 1024
+# Built-in scenario packs ship inside the package; user roots are appended at runtime.
+BUILTIN_SCENARIOS = Path(__file__).resolve().parents[1] / "scenarios"
 
 
 def _identifier(value: str) -> str:
@@ -64,10 +67,12 @@ def default_registry() -> ModuleRegistry:
     return ModuleRegistry([AndroidModule(), WebModule(), CloudModule(), HostModule()])
 
 
-def create_app(data_dir: Path, registry: ModuleRegistry | None = None, *, advisory_provider: AdvisoryProvider | None = None) -> FastAPI:
+def create_app(data_dir: Path, registry: ModuleRegistry | None = None, *, advisory_provider: AdvisoryProvider | None = None,
+               scenarios_dirs: Sequence[Path] = ()) -> FastAPI:
     directory = data_dir.absolute()
     modules = registry or default_registry()
-    lab = LocalLab()
+    scenario_catalog = ScenarioLoader([BUILTIN_SCENARIOS, *scenarios_dirs]).discover()
+    lab = LocalLab(catalog=scenario_catalog)
     lock = WorkspaceLock(directory)
     # Migration is a write too: never upgrade a workspace owned by another server.
     # Release this short initialization lease when no lifespan has started yet.

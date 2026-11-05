@@ -586,6 +586,26 @@
         "title": "LabConfigure",
         "type": "object"
       },
+      "LabStart": {
+        "additionalProperties": false,
+        "description": "请求体可整体省略或传 {}：两者都走内置默认场景；带 id 则启动指定场景包。",
+        "properties": {
+          "scenario_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z0-9][a-z0-9-]{1,40}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario Id"
+          }
+        },
+        "title": "LabStart",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -3173,6 +3193,29 @@
         ]
       }
     },
+    "/api/lab/scenarios": {
+      "get": {
+        "operationId": "scenarios_api_lab_scenarios_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Scenarios Api Lab Scenarios Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Scenarios",
+        "tags": [
+          "local-teaching-site"
+        ]
+      }
+    },
     "/api/lab/start": {
       "post": {
         "operationId": "start_api_lab_start_post",
@@ -3182,7 +3225,7 @@
               "schema": {
                 "anyOf": [
                   {
-                    "$ref": "#/components/schemas/_Empty"
+                    "$ref": "#/components/schemas/LabStart"
                   },
                   {
                     "type": "null"

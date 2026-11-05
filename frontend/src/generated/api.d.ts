@@ -810,6 +810,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/lab/scenarios": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Scenarios */
+    get: operations["scenarios_api_lab_scenarios_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/lab/start": {
     parameters: {
       query?: never;
@@ -1087,6 +1104,14 @@ export interface components {
        * @enum {string}
        */
       profile: "baseline" | "hardened";
+    };
+    /**
+     * LabStart
+     * @description 请求体可整体省略或传 {}：两者都走内置默认场景；带 id 则启动指定场景包。
+     */
+    LabStart: {
+      /** Scenario Id */
+      scenario_id?: string | null;
     };
     /** ValidationError */
     ValidationError: {
@@ -2874,6 +2899,28 @@ export interface operations {
       };
     };
   };
+  scenarios_api_lab_scenarios_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            [key: string]: unknown;
+          };
+        };
+      };
+    };
+  };
   start_api_lab_start_post: {
     parameters: {
       query?: never;
@@ -2883,7 +2930,7 @@ export interface operations {
     };
     requestBody?: {
       content: {
-        "application/json": components["schemas"]["_Empty"] | null;
+        "application/json": components["schemas"]["LabStart"] | null;
       };
     };
     responses: {

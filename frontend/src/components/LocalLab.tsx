@@ -9,7 +9,11 @@ import {
 } from "lucide-react";
 import { api, errorRequestId, errorText } from "../lib/api";
 import { labApi } from "../lib/local-lab";
-import type { LabState } from "../lib/local-lab";
+import type {
+  LabState,
+  ScenarioIssue,
+  ScenarioSummary,
+} from "../lib/local-lab";
 import type {
   Asset,
   Candidate,
@@ -90,7 +94,10 @@ export function LocalLab({
     [busy, setBusy] = useState(""),
     [error, setError] = useState<unknown>(null),
     [checks, setChecks] = useState(["http", "headers", "page"]),
-    [ready, setReady] = useState(false);
+    [ready, setReady] = useState(false),
+    [packs, setPacks] = useState<ScenarioSummary[]>([]),
+    [packIssues, setPackIssues] = useState<ScenarioIssue[]>([]),
+    [selectedPack, setSelectedPack] = useState("");
   const busyRef = useRef(false),
     operations = useRef(new Map<string, string>());
   const baseline = useJob(progress?.baseline || null),
@@ -126,6 +133,21 @@ export function LocalLab({
       })
       .finally(() => {
         if (!controller.signal.aborted) setReady(true);
+      });
+    return () => controller.abort();
+  }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+    void labApi
+      .scenarios(controller.signal)
+      .then((result) => {
+        if (!controller.signal.aborted) {
+          setPacks(result.packs);
+          setPackIssues(result.issues);
+        }
+      })
+      .catch(() => {
+        /* Scenario listing is auxiliary; the default teaching site stands alone. */
       });
     return () => controller.abort();
   }, []);
@@ -306,14 +328,46 @@ export function LocalLab({
                     : "当前响应：补强配置"
                   : "当前未运行"}
               </span>
+              {running && (
+                <span className="lab-profile">
+                  当前场景：
+                  {lab.scenario
+                    ? lab.scenario.title.zh || lab.scenario.title.en
+                    : "内置响应头场景"}
+                </span>
+              )}
+              {packIssues.length > 0 && (
+                <p>
+                  {packIssues.length} 个场景包加载失败：
+                  {packIssues
+                    .slice(0, 3)
+                    .map((issue) => issue.code)
+                    .join("、")}
+                </p>
+              )}
             </div>
             <div className="lab-actions">
+              {!running && packs.length > 0 && (
+                <select
+                  aria-label="选择教学场景"
+                  value={selectedPack}
+                  disabled={Boolean(busy)}
+                  onChange={(event) => setSelectedPack(event.target.value)}
+                >
+                  <option value="">默认（响应头教学站）</option>
+                  {packs.map((pack) => (
+                    <option key={pack.id} value={pack.id}>
+                      {pack.title.zh || pack.title.en}
+                    </option>
+                  ))}
+                </select>
+              )}
               <button
                 className="button button-primary"
                 disabled={Boolean(busy) || running}
                 onClick={() =>
                   void run("start", async () => {
-                    setLab(await labApi.start());
+                    setLab(await labApi.start(selectedPack || undefined));
                   })
                 }
               >

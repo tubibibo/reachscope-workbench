@@ -20,6 +20,12 @@ class LabConfigure(Payload):
     profile: Literal["baseline", "hardened"]
 
 
+class LabStart(Payload):
+    """请求体可整体省略或传 {}：两者都走内置默认场景；带 id 则启动指定场景包。"""
+
+    scenario_id: str | None = Field(default=None, pattern=r"^[a-z0-9][a-z0-9-]{1,40}$")
+
+
 def lab_router(lab: LocalLab) -> APIRouter:
     router = APIRouter(prefix="/api/lab", tags=["local-teaching-site"])
 
@@ -27,9 +33,13 @@ def lab_router(lab: LocalLab) -> APIRouter:
     def status() -> dict[str, Any]:
         return lab.status()
 
+    @router.get("/scenarios")
+    def scenarios() -> dict[str, Any]:
+        return lab.scenarios()
+
     @router.post("/start")
-    def start(payload: _Empty | None = None) -> dict[str, Any]:
-        return lab.start()
+    def start(payload: LabStart | None = None) -> dict[str, Any]:
+        return lab.start(payload.scenario_id if payload is not None else None)
 
     @router.post("/configure")
     def configure(payload: LabConfigure) -> dict[str, Any]:

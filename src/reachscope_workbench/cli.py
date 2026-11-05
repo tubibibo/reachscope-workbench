@@ -22,6 +22,8 @@ def main() -> None:
     serve = sub.add_parser("serve", help="启动本地前端与 API")
     serve.add_argument("--port", type=int, default=8765)
     serve.add_argument("--data", type=Path, default=Path(os.environ.get("REACHSCOPE_DATA", ".workbench")))
+    serve.add_argument("--scenarios-dir", type=Path, action="append", default=None,
+                       help="额外的场景包根目录，可重复传入")
     doctor = sub.add_parser("doctor", help="本地只读启动自检，不联系目标或 AI 服务商")
     doctor.add_argument("--data", type=Path, default=Path(os.environ.get("REACHSCOPE_DATA", ".workbench")))
     doctor.add_argument("--json", action="store_true", help="输出机器可读 JSON")
@@ -42,7 +44,7 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     if not 1 <= args.port <= 65535:
         parser.error("port must be between 1 and 65535")
-    app = create_app(args.data)
+    app = create_app(args.data, scenarios_dirs=tuple(args.scenarios_dir or ()))
     uvicorn.run(app, host="127.0.0.1", port=args.port, log_level="info")
 
 

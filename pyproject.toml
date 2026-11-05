@@ -42,7 +42,7 @@ where = ["src"]
 # HTML 模板必须进 wheel（T4.2）；不配置时 setuptools 不会带走 .j2。
 [tool.setuptools.package-data]
 "reachscope.report" = ["templates/*.j2"]
-"reachscope_workbench" = ["static/*", "static/assets/*", "modules/web/legacy/rules/*.yaml", "modules/web/legacy/LICENSE", "modules/web/legacy/PROVENANCE.md", "collectors/host/LICENSE"]
+"reachscope_workbench" = ["static/*", "static/assets/*", "modules/web/legacy/rules/*.yaml", "modules/web/legacy/LICENSE", "modules/web/legacy/PROVENANCE.md", "collectors/host/LICENSE", "scenarios/*", "scenarios/*/*"]
 "reachscope" = ["samples/*.json", "samples/**/*.xml", "samples/**/*.smali", "samples/**/*.json"]
 
 [tool.pytest.ini_options]
