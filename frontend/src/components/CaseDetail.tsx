@@ -14,10 +14,22 @@ import type {
   RetestResult,
   ReviewCase,
 } from "../lib/types";
-import { dateLabel, isRecord, strings } from "../lib/types";
+import { dateLabel, isRecord } from "../lib/types";
+import { jobConfig } from "../lib/job-config";
+import {
+  canCloseCase,
+  retestChecks,
+  requiresCaseNote,
+  requiresRetestForResolution,
+} from "../lib/workflow-rules";
 import { Loading } from "./Common";
 import { JsonData } from "./results/JsonData";
-import { Failure, caseLabels, retestLabels } from "./CollaborationShared";
+import {
+  Failure,
+  caseLabels,
+  caseStatusLabel,
+  retestLabels,
+} from "./CollaborationShared";
 import type { RoleView } from "./CollaborationShared";
 import { RevisionInput } from "./CaseRevision";
 import { HostCaseJourney } from "./HostCaseJourney";
@@ -49,6 +61,7 @@ export function CaseDetail({
     [jobOffset, setJobOffset] = useState(0),
     [jobTotal, setJobTotal] = useState(0),
     [jobsLoading, setJobsLoading] = useState(false),
+    [jobsError, setJobsError] = useState<unknown>(null),
     [retestId, setRetestId] = useState(""),
     [retest, setRetest] = useState<RetestResult | null>(null),
     [retestLoading, setRetestLoading] = useState(false),
@@ -133,6 +146,7 @@ export function CaseDetail({
     const controller = new AbortController();
     let active = true;
     setJobsLoading(true);
+    setJobsError(null);
     void api
       .caseRetestJobs(id, jobOffset, controller.signal)
       .then((page) => {
@@ -153,7 +167,7 @@ export function CaseDetail({
         }
       })
       .catch((failure) => {
-        if (active) setError(failure);
+        if (active) setJobsError(failure);
       })
       .finally(() => {
         if (active) setJobsLoading(false);
@@ -200,17 +214,17 @@ export function CaseDetail({
     if (!item || busyRef.current) return;
     setError(null);
     setSuccess("");
-    if (
-      ["resolved", "accepted_risk", "false_positive"].includes(status) &&
-      !note.trim()
-    ) {
+    if (requiresCaseNote(status) && !note.trim()) {
       setError(new Error("关闭、接受风险或误报判定需要本次说明。"));
       return;
     }
     if (
-      status === "resolved" &&
-      item.status !== "resolved" &&
-      (!retestId || retest?.outcome !== "not_observed_in_scope")
+      !canCloseCase({
+        status,
+        currentStatus: item.status,
+        retestId,
+        retestOutcome: retest?.outcome,
+      })
     ) {
       setError(
         new Error(
@@ -229,7 +243,10 @@ export function CaseDetail({
           owner: owner.trim(),
           due_date: due,
           note: note.trim(),
-          ...(status === "resolved" && item.status !== "resolved"
+          ...(requiresRetestForResolution({
+            status,
+            currentStatus: item.status,
+          })
             ? { retest_job_id: retestId }
             : {}),
         }),
@@ -272,7 +289,7 @@ export function CaseDetail({
     setSuccess("");
     try {
       const source = await api.job(item.job_id);
-      const selected = strings(source.config.checks);
+      const selected = retestChecks(jobConfig(source));
       if (!selected.length)
         throw new Error("来源是旧版检查，请到资产页选择对应检查项目后复测。");
       const payload = {
@@ -342,7 +359,7 @@ export function CaseDetail({
           </p>
         </div>
         <span className={`case-state case-${item.status}`}>
-          {caseLabels[item.status]}
+          {caseStatusLabel(item.status)}
         </span>
       </div>
       <Failure value={error} retry={() => setRevision((value) => value + 1)} />
@@ -531,6 +548,10 @@ export function CaseDetail({
                 刷新历史
               </button>
             </div>
+            <Failure
+              value={jobsError}
+              retry={() => setRevision((value) => value + 1)}
+            />
             <label className="field">
               <span className="field-label">复测检查</span>
               <select

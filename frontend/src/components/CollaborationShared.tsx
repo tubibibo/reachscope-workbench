@@ -10,6 +10,8 @@ export const caseLabels: Record<CaseStatus, string> = {
   accepted_risk: "接受风险",
   false_positive: "不适用 / 误报",
 };
+export const caseStatusLabel = (status: string): string =>
+  caseLabels[status as CaseStatus] || status;
 export const retestLabels: Record<RetestResult["outcome"], string> = {
   still_observed: "仍观察到该条件",
   not_observed_in_scope: "本次范围内未再观察到",

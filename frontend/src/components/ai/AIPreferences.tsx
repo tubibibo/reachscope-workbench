@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Check, Plug2, Stethoscope } from "lucide-react";
 import { errorRequestId, errorText } from "../../lib/api";
 import { aiApi } from "../../ai/api";
+import { normalizeProviderId } from "../../ai/types";
 import type {
   AIConfig,
   AIProviderId,
@@ -68,7 +69,9 @@ export function AIPreferences() {
       >
     >
   >({});
-  const preset = presets.find((item) => item.id === providerId);
+  const preset = presets.find(
+    (item) => normalizeProviderId(item.id) === normalizeProviderId(providerId),
+  );
   const endpointChanged = Boolean(
     config &&
       (config.provider_id !== providerId ||
@@ -103,10 +106,10 @@ export function AIPreferences() {
           setConfig(value);
           setEnabled(value.enabled);
           setPresets(catalogue.items);
-          setProviderId(value.provider_id);
+          setProviderId(normalizeProviderId(value.provider_id));
           setBaseUrl(value.base_url);
           setModel(value.model);
-          drafts.current[value.provider_id] = {
+          drafts.current[normalizeProviderId(value.provider_id)] = {
             base_url: value.base_url,
             model: value.model,
             reasoning_effort: value.reasoning_effort,
@@ -126,16 +129,19 @@ export function AIPreferences() {
     };
   }, [revision]);
   function chooseProvider(value: AIProviderId) {
-    const next = presets.find((item) => item.id === value);
-    if (!next || value === providerId) return;
+    const normalized = normalizeProviderId(value);
+    const next = presets.find(
+      (item) => normalizeProviderId(item.id) === normalized,
+    );
+    if (!next || normalized === normalizeProviderId(providerId)) return;
     drafts.current[providerId] = {
       base_url: baseUrl,
       model,
       reasoning_effort: reasoningEffort,
       token_limit_field: tokenLimitField,
     };
-    const draft = drafts.current[value];
-    setProviderId(value);
+    const draft = drafts.current[normalized];
+    setProviderId(normalized);
     setBaseUrl(draft?.base_url ?? next.base_url);
     setModel(draft?.model ?? next.models[0] ?? "");
     setReasoningEffort(draft?.reasoning_effort ?? "default");
@@ -156,7 +162,7 @@ export function AIPreferences() {
     try {
       const value = await aiApi.configure({
         enabled,
-        provider_id: providerId,
+        provider_id: normalizeProviderId(providerId),
         base_url: baseUrl.trim(),
         model: model.trim(),
         reasoning_effort: reasoningEffort,
@@ -166,7 +172,7 @@ export function AIPreferences() {
         ...(clearKey ? { clear_key: true } : {}),
       });
       setConfig(value);
-      setProviderId(value.provider_id);
+      setProviderId(normalizeProviderId(value.provider_id));
       setBaseUrl(value.base_url);
       setModel(value.model);
       setReasoningEffort(value.reasoning_effort || "default");
@@ -253,7 +259,10 @@ export function AIPreferences() {
                   }
                 >
                   {presets.map((preset) => (
-                    <option key={preset.id} value={preset.id}>
+                    <option
+                      key={preset.id}
+                      value={normalizeProviderId(preset.id)}
+                    >
                       {preset.label}
                     </option>
                   ))}

@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import type { Asset, ReviewCase } from "../lib/types";
 import { Loading } from "./Common";
 import { Failure } from "./CollaborationShared";
+import { supportsRevisionLink } from "../lib/workflow-rules";
 
 export function RevisionInput({
   item,
@@ -81,12 +82,7 @@ export function RevisionInput({
       (original?.kind !== "host" ||
         asset.source.host_id === original.source.host_id),
   );
-  const supported =
-    original &&
-    (["apk", "import"].includes(String(original.source.mode)) ||
-      (original.kind === "host" &&
-        original.source.profile_id === "host-baseline" &&
-        original.source.mode === "baseline"));
+  const supported = supportsRevisionLink(original);
   async function attach() {
     if (!selected || !note.trim() || savingRef.current) return;
     savingRef.current = true;

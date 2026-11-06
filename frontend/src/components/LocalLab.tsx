@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { api, errorRequestId, errorText } from "../lib/api";
 import { labApi } from "../lib/local-lab";
+import { jobConfig } from "../lib/job-config";
 import type {
   LabState,
   ScenarioIssue,
@@ -233,7 +234,7 @@ export function LocalLab({
     if (!asset || !lab) return;
     const selected =
       phase === "retest" && baseline.job
-        ? strings(baseline.job.config.checks)
+        ? strings(jobConfig(baseline.job).checks)
         : checks;
     const preflight = await api.preflight(asset.id, { checks: selected });
     if (!preflight.ready)

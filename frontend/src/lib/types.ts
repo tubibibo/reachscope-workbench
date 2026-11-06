@@ -160,7 +160,7 @@ export interface Job {
   message: string;
   created_at: string;
   updated_at: string;
-  config: Data;
+  config?: Data | null;
   error: { code: string; message: string } | null;
   result?: ModuleResult | null;
   asset_id?: string | null;
@@ -198,7 +198,7 @@ export interface Engagement {
   asset_ids: string[];
   asset_count: number;
   case_count: number;
-  case_counts: Record<CaseStatus, number>;
+  case_counts?: Record<CaseStatus, number>;
 }
 export interface Candidate {
   source_ref: string;
@@ -333,6 +333,8 @@ export const statusLabel: Record<Status, string> = {
   failed: "失败",
   cancelled: "已取消",
 };
+export const statusLabelText = (value: string): string =>
+  statusLabel[value as Status] || value;
 export const moduleLabel: Record<ModuleId, string> = {
   android: "Android",
   web: "Web",

@@ -1,5 +1,6 @@
 import type { Asset, Data, Job } from "./types";
 import { textValue } from "./types";
+import { jobConfig } from "./job-config";
 
 export type SourceKind = "probe" | "file" | "demo" | "legacy" | "training";
 export interface InspectionSource {
@@ -62,7 +63,7 @@ export function sourceOfInput(
 }
 export function sourceOfJob(job: Job): InspectionSource {
   return sourceOfInput(
-    job.asset_snapshot?.source || job.config,
+    job.asset_snapshot?.source || jobConfig(job),
     job.asset_snapshot?.kind || (job.module === "web" ? "website" : job.module),
     job.asset_snapshot?.provenance,
   );

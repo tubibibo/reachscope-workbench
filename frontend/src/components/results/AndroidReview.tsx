@@ -10,6 +10,7 @@ import {
 } from "../../lib/types";
 import { SearchField } from "../Common";
 import { externalReferenceUrl } from "../../lib/security";
+import { jobConfig } from "../../lib/job-config";
 
 const reviewStates: Record<string, string> = {
   pass: "满足本项条件",
@@ -41,7 +42,9 @@ export function AndroidBrief({
   const execution = records(result.details.execution);
   const completed = execution.filter((item) => item.status === "completed");
   const skipped = execution.filter((item) => item.status === "skipped");
-  const mode = textValue(job.asset_snapshot?.source.mode || job.config.mode);
+  const mode = textValue(
+    job.asset_snapshot?.source.mode || jobConfig(job).mode,
+  );
   const counts = Object.keys(reviewStates).map((state) => ({
     state,
     count: checks.filter((check) => stateOf(check) === state).length,

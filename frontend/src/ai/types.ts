@@ -1,7 +1,14 @@
 import type { Data } from "../lib/types";
 import type { components } from "../generated/api";
 
-export type AIProviderId = "openai_compatible" | "deepseek" | "custom";
+export type AIProviderId =
+  | "openai_compatible"
+  | "openai-compatible"
+  | "deepseek"
+  | "custom";
+export function normalizeProviderId(value: AIProviderId): AIProviderId {
+  return value === "openai-compatible" ? "openai_compatible" : value;
+}
 export type ReasoningEffort =
   | "default"
   | "none"

@@ -2,6 +2,7 @@ import { ArrowRight, ChevronDown, Layers3 } from "lucide-react";
 import type { Job, ModuleResult } from "../../lib/types";
 import { readable, records, strings } from "../../lib/types";
 import { sourceOfJob } from "../../lib/inspection-source";
+import { jobConfig } from "../../lib/job-config";
 
 const checkLabels: Record<string, string> = {
   http: "HTTP 响应",
@@ -45,7 +46,7 @@ export function ResultBrief({
         <span className="eyebrow">01 / SCOPE</span>
         <h3>本次覆盖</h3>
         <p>
-          {strings(job.config.checks)
+          {strings(jobConfig(job).checks)
             .map((id) => checkLabels[id] || id)
             .join(" / ") || "按保存的输入配置执行"}
         </p>

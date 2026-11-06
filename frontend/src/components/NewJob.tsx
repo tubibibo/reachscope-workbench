@@ -31,6 +31,7 @@ import { SourceBadge } from "./SourceBadge";
 import { CloudInputPreview } from "./CloudInputPreview";
 import { HostInputPreview } from "./HostInputPreview";
 import { HostPreparation } from "./HostPreparation";
+import { INPUT_LIMITS } from "../lib/workflow-rules";
 
 const samples = [
   ["cross_component", "跨组件传参"],
@@ -270,7 +271,7 @@ export function NewJob({
         .split(/\r?\n/)
         .map((item) => item.trim())
         .filter(Boolean);
-      if (!urls.length || urls.length > 20)
+      if (!urls.length || urls.length > INPUT_LIMITS.urls)
         throw new Error("请输入 1–20 个完整的 HTTP(S) 地址，每行一个。");
       if (
         urls.some((url) => {
@@ -300,7 +301,9 @@ export function NewJob({
             : "请选择配置或资产文件。",
         );
       const limit =
-        profile.input === "apk" ? 256 * 1024 * 1024 : 2 * 1024 * 1024;
+        profile.input === "apk"
+          ? INPUT_LIMITS.apkBytes
+          : INPUT_LIMITS.jsonBytes;
       if (!file.size || file.size > limit)
         throw new Error(
           profile.input === "apk"
@@ -321,7 +324,10 @@ export function NewJob({
     if (profile.id === "android-demo") source.sample = sample;
     if (profile.module === "host") {
       source.host_id = profile.mode === "demo" ? "demo-host-01" : hostId.trim();
-      if (!source.host_id || String(source.host_id).length > 128)
+      if (
+        !source.host_id ||
+        String(source.host_id).length > INPUT_LIMITS.hostId
+      )
         throw new Error(
           "请填写 1–128 个字符的主机标识，并与配置文件中的 host_id 保持一致。",
         );

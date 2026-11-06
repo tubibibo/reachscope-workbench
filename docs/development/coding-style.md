@@ -36,6 +36,8 @@
 
 ## 4. 命名
 
+- 前端业务规则集中在 `frontend/src/lib/workflow-rules.ts` 并与后端校验同步；后端校验是权威。
+
 - 公开名字（`Bridge.impl_class` 之类）只用**英文 snake_case**。中文只允许出现在**面向用户的字符串**里：CLI 输出、报告模板、logging 自然语言。
 - 稳定 ID 一律 `stable_id(kind, key)`，禁止自增。
 - 决策记入[架构决策](../architecture/adr/)；规格与代码冲突时修订规格，不在代码里添加未说明的特例。

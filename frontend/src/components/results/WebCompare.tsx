@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, GitCompareArrows, LoaderCircle } from "lucide-react";
 import { api, errorText } from "../../lib/api";
+import { jobConfig } from "../../lib/job-config";
 import type { Job, WebComparison } from "../../lib/types";
 import { dateLabel, readable } from "../../lib/types";
 import { ErrorBox, Loading } from "../Common";
@@ -133,7 +134,7 @@ export function WebCompare({
     (item) =>
       item.id !== job.id &&
       item.status === "completed" &&
-      item.config.mode === "probe",
+      jobConfig(item).mode === "probe",
   );
   const selectedJob = jobs.find((item) => item.id === baseline);
   const matches =
@@ -154,7 +155,7 @@ export function WebCompare({
         按相同精确 URL
         比较保存的两次探测。状态、响应头、页面与正文摘要的变化可以帮助复查部署；目标缺席不代表服务下线。
       </p>
-      {job.config.mode !== "probe" ? (
+      {jobConfig(job).mode !== "probe" ? (
         <p className="inline-empty">
           仅 HTTP 探测任务可以比较快照。离线样例和文件导入不代表本次站点状态。
         </p>

@@ -28,7 +28,7 @@ import {
 import { api, errorRequestId, errorText } from "./lib/api";
 import { useJob, useJobs } from "./hooks/useJobs";
 import type { Asset, Job, ModuleId, ModuleSpec } from "./lib/types";
-import { dateLabel, isActive, moduleLabel, statusLabel } from "./lib/types";
+import { dateLabel, isActive, moduleLabel, statusLabelText } from "./lib/types";
 import {
   Empty,
   ErrorBox,
@@ -803,7 +803,7 @@ function Overview({
                         <span className="job-message">
                           {job.error?.message ||
                             job.message ||
-                            statusLabel[job.status]}
+                            statusLabelText(job.status)}
                         </span>
                       )}
                     </td>

@@ -7,13 +7,13 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import type { Data, Job, Status } from "../lib/types";
-import { readable, statusLabel } from "../lib/types";
+import { readable, statusLabelText } from "../lib/types";
 
-export function StatusTag({ status }: { status: Status }) {
+export function StatusTag({ status }: { status: Status | string }) {
   return (
     <span className={`status-tag status-${status}`}>
       <i />
-      {statusLabel[status]}
+      {statusLabelText(status)}
     </span>
   );
 }
@@ -135,7 +135,7 @@ export function ProgressBar({ job }: { job: Job }) {
   return (
     <div className="job-progress">
       <div className="progress-caption">
-        <span>{job.message || statusLabel[job.status]}</span>
+        <span>{job.message || statusLabelText(job.status)}</span>
         <strong>{Math.min(100, Math.max(0, Math.round(job.progress)))}%</strong>
       </div>
       <div className="progress-track">

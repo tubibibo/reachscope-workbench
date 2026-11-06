@@ -13,6 +13,7 @@ import { api } from "../lib/api";
 import type {
   Asset,
   Candidate,
+  CaseStatus,
   Engagement,
   Job,
   ReviewCase,
@@ -21,6 +22,7 @@ import { assetKindLabel, dateLabel } from "../lib/types";
 import { useDialog } from "../hooks/useDialog";
 import { Empty, Loading, SearchField } from "./Common";
 import { Failure, caseLabels } from "./CollaborationShared";
+import { caseStatusLabel } from "./CollaborationShared";
 import type { RoleView } from "./CollaborationShared";
 import { CaseDetail } from "./CaseDetail";
 
@@ -595,6 +597,8 @@ function Workspace({
         {loading && <Loading />}
       </>
     );
+  const caseCounts: Partial<Record<CaseStatus, number>> =
+    workspace.case_counts ?? {};
   const matches = cases.filter(
     (item) =>
       (filter === "all" || item.status === filter) &&
@@ -670,15 +674,15 @@ function Workspace({
             </div>
             <div>
               <span>处理中</span>
-              <strong>{workspace.case_counts.in_progress || 0}</strong>
+              <strong>{caseCounts.in_progress || 0}</strong>
             </div>
             <div>
               <span>待复测</span>
-              <strong>{workspace.case_counts.ready_for_retest || 0}</strong>
+              <strong>{caseCounts.ready_for_retest || 0}</strong>
             </div>
             <div>
               <span>已复核关闭</span>
-              <strong>{workspace.case_counts.resolved || 0}</strong>
+              <strong>{caseCounts.resolved || 0}</strong>
             </div>
           </div>
           <div className="workspace-record-heading">
@@ -740,7 +744,7 @@ function Workspace({
                   onClick={() => open(id, item.id)}
                 >
                   <span className={`case-state case-${item.status}`}>
-                    {caseLabels[item.status]}
+                    {caseStatusLabel(item.status)}
                   </span>
                   <div className="case-row-main">
                     <h3>{item.title}</h3>
