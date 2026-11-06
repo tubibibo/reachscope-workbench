@@ -249,6 +249,14 @@ class JobRunner:
                 except asyncio.CancelledError:
                     if self.stopping:
                         return
+                except Exception:  # Worker boundary: persistence failures must not kill queue consumers.
+                    logger.exception("Worker failed for job %s", job_id)
+                    try:
+                        await asyncio.to_thread(
+                            self.repository.transition, job_id, {"running"}, "failed", "执行器异常",
+                            error={"code": "WORKER_ERROR", "message": "任务执行器异常，任务已标记失败"})
+                    except Exception:  # Best effort only when the storage itself remains unavailable.
+                        logger.exception("Worker recovery persistence failed for job %s", job_id)
                 finally:
                     self.active.pop(job_id, None)
             finally:

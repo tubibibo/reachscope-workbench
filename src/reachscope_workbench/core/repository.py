@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import builtins
 import json
+import logging
 import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -16,6 +17,7 @@ from .models import WorkbenchError
 from .pagination import validate_page
 
 TERMINAL = frozenset({"completed", "failed", "cancelled"})
+logger = logging.getLogger(__name__)
 
 
 def timestamp() -> str:
@@ -134,7 +136,27 @@ class JobRepository:
             # releases must reject this workspace before interpreting them.
             db.execute("UPDATE schema_meta SET version=7")
             db.commit()
-            db.execute("PRAGMA journal_mode=WAL")
+            self._enable_wal(db)
+
+    @staticmethod
+    def _enable_wal(db: sqlite3.Connection) -> None:
+        mode = db.execute("PRAGMA journal_mode=WAL").fetchone()[0]
+        if str(mode).lower() != "wal":
+            logger.warning("WAL unavailable; actual journal mode: %s", mode)
+
+    def check_schema_version(self) -> int:
+        """Validate again under the workspace lease without creating a missing DB."""
+        try:
+            db = sqlite3.connect(f"{self.path.resolve().as_uri()}?mode=rw", uri=True, timeout=10)
+            try:
+                version = self._schema_version(db)
+            finally:
+                db.close()
+        except (sqlite3.DatabaseError, OSError) as exc:
+            raise WorkbenchError("SCHEMA_UNSUPPORTED", "Workspace database cannot be opened") from exc
+        if version != 7:
+            raise WorkbenchError("SCHEMA_UNSUPPORTED", "Workspace database version is unsupported")
+        return version
 
     @staticmethod
     def _schema_version(db: sqlite3.Connection) -> int | None:

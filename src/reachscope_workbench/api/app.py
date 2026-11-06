@@ -86,6 +86,7 @@ def create_app(data_dir: Path, registry: ModuleRegistry | None = None, *, adviso
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         lock.acquire()
         try:
+            await asyncio.to_thread(repository.check_schema_version)
             await runner.start()
             await advisory.start()
             yield
@@ -405,8 +406,8 @@ def create_app(data_dir: Path, registry: ModuleRegistry | None = None, *, adviso
 
     async def evidence_error(request: Request, exc: ArtifactError | QueryError) -> JSONResponse:
         return failure(request, exc.code, str(exc), 400)
-    app.add_exception_handler(ArtifactError, evidence_error)  # type: ignore[arg-type]
-    app.add_exception_handler(QueryError, evidence_error)  # type: ignore[arg-type]
+    app.add_exception_handler(ArtifactError, evidence_error)  # type: ignore[arg-type]  # — Starlette 签名宽于具体异常，运行期按精确类型分发
+    app.add_exception_handler(QueryError, evidence_error)  # type: ignore[arg-type]  # — Starlette 签名宽于具体异常，运行期按精确类型分发
 
     static = Path(__file__).resolve().parents[1] / "static"
     assets = static / "assets"
