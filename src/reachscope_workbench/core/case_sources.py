@@ -9,6 +9,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import re
 from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
@@ -16,6 +17,11 @@ from urllib.parse import urlsplit, urlunsplit
 from .models import WorkbenchError
 
 _PAGE_CHECKS = {"password_forms", "mixed_content"}
+
+
+def _scope_key_without_projection(value: str) -> str:
+    """Return the semantic key without a projected /2 collector namespace."""
+    return re.sub(r"^projected:[^:]+:", "", value)
 _HEADER_CHECKS = {"csp", "frame_protection", "nosniff", "referrer_policy", "hsts", "cors",
                   "cookie_secure", "cookie_http_only", "cookie_same_site", "tls_expiry"}
 _CLOUD_GROUPS = {"network": "network", "iam": "iam", "storage": "storage"}
@@ -344,7 +350,11 @@ def _compare_host(
                 or not keys or len(keys) > 200 or any(not isinstance(key, str) or not key for key in keys)
                 or len(set(keys)) != len(keys)):
             return "not_comparable", "配置上下文身份不完整，不能把上下文消失或解析缺口当作整改。", rows, identifiers
-    if sorted(identities[0]["scope_keys"]) != sorted(identities[1]["scope_keys"]):
+    before_keys = identities[0]["scope_keys"]
+    after_keys = identities[1]["scope_keys"]
+    if sorted(before_keys) != sorted(after_keys):
+        if sorted(map(_scope_key_without_projection, before_keys)) == sorted(map(_scope_key_without_projection, after_keys)):
+            return "not_comparable", "采集格式命名空间不同（/1 与 /2），需人工确认语义等价后复核。", rows, identifiers
         return "not_comparable", "配置上下文集合发生变化，需要补充对应关系后人工复核。", rows, identifiers
     before_time, after_time = _host_collection_time(baseline), _host_collection_time(current)
     if before_time is None or after_time is None or after_time < before_time:
@@ -366,8 +376,10 @@ def compare_retest(
     }
 
     def report(outcome: str, reason: str, rows: list[dict[str, Any]] | None = None,
-               identifiers: list[str] | None = None) -> dict[str, Any]:
+               identifiers: list[str] | None = None, *, namespace_only_difference: bool = False) -> dict[str, Any]:
         result.update(outcome=outcome, reason=reason, matching=copy.deepcopy(rows or []))
+        if namespace_only_difference:
+            result["namespace_only_difference"] = True
         result["evidence"] = _proof(retest_job["result"], identifiers or []) if isinstance(retest_job.get("result"), dict) else []
         return result
 
@@ -385,7 +397,9 @@ def compare_retest(
         return report("not_comparable", "复测执行模块与来源任务不同。")
     locator = selected["locator"]
     if locator["type"] == "host_check":
-        return report(*_compare_host(original_job, selected, retest_job))
+        outcome, reason, rows, identifiers = _compare_host(original_job, selected, retest_job)
+        return report(outcome, reason, rows, identifiers,
+                      namespace_only_difference=reason.startswith("采集格式命名空间不同"))
     if locator["type"] == "android_check":
         return report(*_compare_android(original_job, selected, retest_job))
     if locator["type"] == "cloud_check":

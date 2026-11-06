@@ -105,6 +105,27 @@ class AIConfiguration(Payload):
     clear_key: bool = False
 
 
+class AIConfigurationResponse(BaseModel):
+    """Safe, explicit configuration status; the API key itself is never returned."""
+
+    enabled: bool
+    provider_id: Literal["openai_compatible", "deepseek", "custom"]
+    provider_label: str
+    base_url: str
+    model: str
+    reasoning_effort: str
+    token_limit_field: Literal["max_tokens", "max_completion_tokens"]
+    allow_local: bool
+    configuration_sha256: str
+    has_key: bool
+    credential_source: Literal["session", "environment", "missing"]
+    environment_blocked: bool
+    environment_blocked_reason: str | None
+    timeout: int
+    capabilities: dict[str, bool]
+    limitations: list[str]
+
+
 class AIDiagnostic(Payload):
     provider_id: Literal["openai_compatible", "openai-compatible", "deepseek", "custom"] | None = None
     base_url: str | None = Field(default=None, min_length=1, max_length=512)

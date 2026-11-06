@@ -142,6 +142,31 @@ def test_real_baseline_revision_case_closes_only_after_explicit_relation(client:
     assert client.get("/api/jobs/" + before["id"]).json() == before
 
 
+def test_projected_scope_namespace_is_diagnosed_without_auto_resolution(client: TestClient) -> None:
+    from reachscope_workbench.core.case_sources import compare_retest
+
+    before = inspect(client, save(client, baseline_bytes("srv-web-01")), ["ssh"])
+    after = inspect(client, save(client, baseline_bytes("srv-web-01", hardened=True)), ["ssh"])
+    after["asset_id"] = before["asset_id"]
+    selected = next(row for row in candidates(before) if row["category"] == "host.ssh.root_login")
+    for row in after["result"]["details"]["checks"]:
+        row["comparison_identity"]["scope_keys"] = [
+            f"projected:reachscope-minimal/1:{key}" for key in row["comparison_identity"]["scope_keys"]
+        ]
+    result = compare_retest(before, selected["source_kind"], selected["source_ref"], after)
+    assert result["outcome"] == "not_comparable"
+    assert result["namespace_only_difference"] is True
+    assert "格式命名空间不同" in result["reason"]
+    assert "需人工确认" in result["reason"]
+    changed = copy.deepcopy(after)
+    target = next(row for row in changed["result"]["details"]["checks"] if row["id"] == selected["locator"]["check_id"])
+    target["comparison_identity"]["scope_keys"][0] += ":different-context"
+    result = compare_retest(before, selected["source_kind"], selected["source_ref"], changed)
+    assert result["outcome"] == "not_comparable"
+    assert result.get("namespace_only_difference") is not True
+    assert "配置上下文集合发生变化" in result["reason"]
+
+
 @pytest.mark.parametrize("config", [{"mode": "baseline", "host_id": ""}, {"mode": "demo", "checks": ["other"]},
                                    {"mode": "demo", "host_id": "bad\nidentity"}, {"mode": "demo", "host_id": True},
                                    {"mode": "demo", "command": "ignored?"}, {"mode": "access_log", "checks": ["ssh"]}])

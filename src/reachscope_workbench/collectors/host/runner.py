@@ -15,6 +15,7 @@ TIMEOUT_SECONDS = 10
 STDOUT_LIMIT = 256 * 1024
 STDERR_LIMIT = 64 * 1024
 COMMANDS = {"ssh": ("/usr/sbin/sshd", "-T"), "nginx": ("/usr/sbin/nginx", "-T")}
+_CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
 
 @dataclass(frozen=True)
@@ -31,9 +32,16 @@ def _stop(process: subprocess.Popen[bytes]) -> None:
     try:
         if os.name == "posix":
             cast(Callable[[int, int], None], getattr(os, "killpg", None))(process.pid, signal.SIGTERM)
-        elif process.poll() is None:
-            process.terminate()
-    except OSError:
+        else:
+            result = subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)],
+                                    check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                    creationflags=_CREATE_NO_WINDOW, timeout=2)
+            if result.returncode == 0:
+                process.wait(timeout=1)
+                return
+            if process.poll() is None:
+                process.terminate()
+    except (OSError, subprocess.TimeoutExpired):
         pass
     try:
         process.wait(timeout=.3)

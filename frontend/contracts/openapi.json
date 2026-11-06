@@ -94,6 +94,122 @@
         "title": "AIConfiguration",
         "type": "object"
       },
+      "AIConfigurationResponse": {
+        "description": "Safe, explicit configuration status; the API key itself is never returned.",
+        "properties": {
+          "allow_local": {
+            "title": "Allow Local",
+            "type": "boolean"
+          },
+          "base_url": {
+            "title": "Base Url",
+            "type": "string"
+          },
+          "capabilities": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "title": "Capabilities",
+            "type": "object"
+          },
+          "configuration_sha256": {
+            "title": "Configuration Sha256",
+            "type": "string"
+          },
+          "credential_source": {
+            "enum": [
+              "session",
+              "environment",
+              "missing"
+            ],
+            "title": "Credential Source",
+            "type": "string"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "environment_blocked": {
+            "title": "Environment Blocked",
+            "type": "boolean"
+          },
+          "environment_blocked_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Environment Blocked Reason"
+          },
+          "has_key": {
+            "title": "Has Key",
+            "type": "boolean"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "provider_id": {
+            "enum": [
+              "openai_compatible",
+              "deepseek",
+              "custom"
+            ],
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "provider_label": {
+            "title": "Provider Label",
+            "type": "string"
+          },
+          "reasoning_effort": {
+            "title": "Reasoning Effort",
+            "type": "string"
+          },
+          "timeout": {
+            "title": "Timeout",
+            "type": "integer"
+          },
+          "token_limit_field": {
+            "enum": [
+              "max_tokens",
+              "max_completion_tokens"
+            ],
+            "title": "Token Limit Field",
+            "type": "string"
+          }
+        },
+        "required": [
+          "enabled",
+          "provider_id",
+          "provider_label",
+          "base_url",
+          "model",
+          "reasoning_effort",
+          "token_limit_field",
+          "allow_local",
+          "configuration_sha256",
+          "has_key",
+          "credential_source",
+          "environment_blocked",
+          "environment_blocked_reason",
+          "timeout",
+          "capabilities",
+          "limitations"
+        ],
+        "title": "AIConfigurationResponse",
+        "type": "object"
+      },
       "AIConsultation": {
         "additionalProperties": false,
         "properties": {
@@ -948,9 +1064,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Configuration Api Ai Config Get",
-                  "type": "object"
+                  "$ref": "#/components/schemas/AIConfigurationResponse"
                 }
               }
             },
@@ -979,9 +1093,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Configure Api Ai Config Put",
-                  "type": "object"
+                  "$ref": "#/components/schemas/AIConfigurationResponse"
                 }
               }
             },

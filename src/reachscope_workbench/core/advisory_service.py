@@ -44,7 +44,11 @@ class AdvisoryService:
         self.settings.setdefault("token_limit_field", preset(str(self.settings["provider_id"]))["token_limit_field"])
         self.environment_key = os.environ.get("REACHSCOPE_AI_API_KEY", "")
         self.environment_scope = self._credential_scope(self.settings)
-        self.environment_blocked = False
+        blocked = self.settings.get("_environment_blocked_scopes", [])
+        self.environment_blocked_scopes: set[tuple[str, str]] = {
+            (str(item[0]), str(item[1])) for item in blocked
+            if isinstance(item, (list, tuple)) and len(item) == 2 and all(isinstance(part, str) for part in item)
+        } if isinstance(blocked, list) else set()
         self.session_key = ""
         self.tasks: dict[str, asyncio.Task[None]] = {}
         self.lock = asyncio.Lock()
@@ -77,17 +81,28 @@ class AdvisoryService:
     def credential(self) -> tuple[str, str]:
         if self.session_key:
             return self.session_key, "session"
-        value = self.environment_key if (not self.environment_blocked
-                                        and self.environment_scope == self._credential_scope(self.settings)) else ""
+        current_scope = self._credential_scope(self.settings)
+        value = self.environment_key if (
+            self.environment_scope == current_scope and current_scope not in self.environment_blocked_scopes
+        ) else ""
         return (value, "environment") if value else ("", "missing")
 
     def config(self) -> dict[str, Any]:
         key, origin = self.credential()
         provider_id = str(self.settings.get("provider_id") or infer_provider(str(self.settings.get("base_url", ""))))
         label = next((item["label"] for item in presets() if item["id"] == provider_id), "自定义兼容接口")
-        return {**{key: value for key, value in self.settings.items() if key != "revision"},
+        current_scope = self._credential_scope(self.settings)
+        environment_blocked = bool(self.environment_key) and (
+            self.environment_scope != current_scope or current_scope in self.environment_blocked_scopes
+        )
+        blocked_reason = None
+        if environment_blocked:
+            blocked_reason = ("环境凭据已对当前服务配置禁用" if current_scope in self.environment_blocked_scopes
+                              else "环境凭据仅适用于原服务地址")
+        return {**{key: value for key, value in self.settings.items() if not key.startswith("_") and key != "revision"},
                 "provider_id": provider_id, "provider_label": label, "configuration_sha256": digest(self.settings),
-                "has_key": bool(key), "credential_source": origin, "timeout": 45,
+                "has_key": bool(key), "credential_source": origin, "environment_blocked": environment_blocked,
+                "environment_blocked_reason": blocked_reason, "timeout": 45,
                 "capabilities": {"web": True, "android": False, "cloud": False, "host": False}, "limitations": list(_LIMITATIONS)}
 
     async def configure(self, settings: dict[str, Any], *, key: str | None = None, clear_key: bool = False) -> dict[str, Any]:
@@ -100,6 +115,12 @@ class AdvisoryService:
             clean["provider_id"] = provider_id
             clean["token_limit_field"] = settings.get("token_limit_field") or preset(provider_id)["token_limit_field"]
             clean["revision"] = uuid4().hex
+            changed_scope = self._credential_scope(clean) != self._credential_scope(self.settings)
+            new_scope = self._credential_scope(clean)
+            next_blocked_scopes = set(self.environment_blocked_scopes)
+            if clear_key or (changed_scope and new_scope != self.environment_scope):
+                next_blocked_scopes.add(new_scope)
+            clean["_environment_blocked_scopes"] = [list(scope) for scope in sorted(next_blocked_scopes)]
             operation = asyncio.create_task(asyncio.to_thread(self.records.save_settings, clean))
             cancelled = False
             try:
@@ -107,11 +128,10 @@ class AdvisoryService:
             except asyncio.CancelledError:
                 await operation
                 cancelled = True
-            changed_scope = self._credential_scope(clean) != self._credential_scope(self.settings)
             self.settings = clean
             if clear_key or changed_scope:
                 self.session_key = ""
-                self.environment_blocked = True
+            self.environment_blocked_scopes = next_blocked_scopes
             if key and not clear_key:
                 self.session_key = key
             if cancelled:

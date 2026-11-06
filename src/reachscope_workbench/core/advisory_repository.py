@@ -28,7 +28,7 @@ class AdvisoryRepository:
         return _object(row[0]) if row else None
 
     def save_settings(self, value: dict[str, Any]) -> None:
-        if set(value) - {"enabled", "provider_id", "base_url", "model", "reasoning_effort", "token_limit_field", "allow_local", "revision"}:
+        if set(value) - {"enabled", "provider_id", "base_url", "model", "reasoning_effort", "token_limit_field", "allow_local", "revision", "_environment_blocked_scopes"}:
             raise WorkbenchError("AI_INVALID_CONFIG", "设置包含不允许保存的字段")
         with self.jobs.connection() as db:
             db.execute("INSERT INTO ai_settings(id,data) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data", (canonical(value),))

@@ -291,6 +291,41 @@ def test_environment_key_is_scoped_to_startup_endpoint_and_clear_masks_it(
         assert replacement.status_code == 200 and replacement.json()["credential_source"] == "session"
 
 
+def test_environment_credential_scope_and_clear_status_are_reversible_and_persistent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("REACHSCOPE_AI_API_KEY", "environment-scope-test")
+    first_settings = {"enabled": True, "provider_id": "openai_compatible", "base_url": "https://api.openai.com/v1", "model": "first"}
+    other_settings = {**first_settings, "base_url": "https://second.example.invalid/v1"}
+    with TestClient(create_app(tmp_path)) as client:
+        assert client.put("/api/ai/config", headers=HEADERS, json=first_settings).json()["credential_source"] == "environment"
+        model_change = client.put("/api/ai/config", headers=HEADERS, json={**first_settings, "model": "second"}).json()
+        assert model_change["credential_source"] == "environment" and model_change["environment_blocked"] is False
+        changed_scope = client.put("/api/ai/config", headers=HEADERS, json=other_settings).json()
+        assert changed_scope["credential_source"] == "missing" and changed_scope["environment_blocked"] is True
+        assert changed_scope["environment_blocked_reason"]
+        returned = client.put("/api/ai/config", headers=HEADERS, json=first_settings).json()
+        assert returned["credential_source"] == "environment"
+        cleared = client.put("/api/ai/config", headers=HEADERS, json={**first_settings, "clear_key": True}).json()
+        assert cleared["credential_source"] == "missing" and cleared["environment_blocked"] is True
+    with TestClient(create_app(tmp_path)) as client:
+        blocked = client.get("/api/ai/config").json()
+        assert blocked["credential_source"] == "missing" and blocked["environment_blocked"] is True
+        assert "_environment_blocked_scopes" not in blocked
+        supplied = client.put("/api/ai/config", headers=HEADERS, json={**first_settings, "api_key": "session-key"}).json()
+        assert supplied["credential_source"] == "session" and supplied["environment_blocked"] is True
+
+
+def test_ai_config_status_fields_are_in_response_contract(tmp_path: Path) -> None:
+    schema = create_app(tmp_path).openapi()
+    response = schema["paths"]["/api/ai/config"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]
+    definition = schema["components"]["schemas"]["AIConfigurationResponse"]
+    assert response["$ref"] == "#/components/schemas/AIConfigurationResponse"
+    assert {"environment_blocked", "environment_blocked_reason"} <= definition["properties"].keys()
+    assert "environment_blocked" in definition["required"]
+    assert "environment_blocked_reason" in definition["required"]
+
+
 @pytest.mark.parametrize("change", [{"reasoning_effort": "xhigh"}, {"token_limit_field": "max_completion_tokens"}])
 def test_deepseek_rejects_incompatible_gpt_options(tmp_path: Path, change: dict[str, str]) -> None:
     with TestClient(create_app(tmp_path)) as client:
@@ -309,6 +344,15 @@ async def test_diagnostic_dns_failure_returns_bounded_safe_result(monkeypatch: p
     result = await ai_provider.diagnose_endpoint({"base_url": "https://api.example.invalid/v1"})
     assert result["status"] == "unreachable" and result["error_code"] == "dns_failed"
     assert "untrusted resolver details" not in str(result)
+
+
+async def test_missing_parsed_hostname_is_a_structured_network_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(ai_provider, "urlsplit", lambda _url: SimpleNamespace(hostname=None))
+    with pytest.raises(WorkbenchError) as caught:
+        await ai_provider._addresses("https://example.test/v1", False)
+    assert caught.value.code == "AI_NETWORK_ERROR"
 
 
 async def test_diagnostic_deadline_includes_dns_resolution(monkeypatch: pytest.MonkeyPatch) -> None:

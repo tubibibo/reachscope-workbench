@@ -17,6 +17,7 @@ from ...core.models import (
     RunContext,
     WorkbenchError,
 )
+from ...core.uploads import read_upload
 from .guidance import implementation_guide
 from .input import MAX_BYTES, REDACTED, UNKNOWN, parse_input
 from .preview import preview_input
@@ -39,14 +40,8 @@ def _identity(kind: str, value: str) -> str:
 
 
 def _read(path: Path) -> bytes:
-    try:
-        with path.open("rb") as file:
-            data = file.read(MAX_BYTES + 1)
-    except OSError as exc:
-        raise WorkbenchError("UPLOAD_NOT_FOUND", "云配置上传文件不可读取") from exc
-    if len(data) > MAX_BYTES:
-        raise WorkbenchError("CLOUD_INPUT_LIMIT", "云配置 JSON 不得超过 2 MiB")
-    return data
+    return read_upload(path, max_bytes=MAX_BYTES, missing_message="云配置上传文件不可读取",
+                       limit_code="CLOUD_INPUT_LIMIT", limit_message="云配置 JSON 不得超过 2 MiB")
 
 
 class CloudModule:

@@ -307,6 +307,58 @@ def test_stop_kills_owned_group_even_when_leader_already_exited(monkeypatch: pyt
     assert sent == [(12345, signal.SIGTERM), (12345, getattr(signal, "SIGKILL", 9))]
 
 
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows taskkill process-tree behavior")
+def test_windows_stop_uses_taskkill_tree_before_direct_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[tuple[list[str], int]] = []
+
+    class Process:
+        pid = 4321
+        stopped = False
+
+        def poll(self) -> int | None:
+            return None if not self.stopped else 1
+
+        def wait(self, timeout: float | None = None) -> int:
+            self.stopped = True
+            return 1
+
+        def terminate(self) -> None:
+            self.stopped = True
+
+        def kill(self) -> None:
+            self.stopped = True
+
+    process = Process()
+    monkeypatch.setattr(runner.subprocess, "run", lambda args, **kwargs: calls.append((args, kwargs["creationflags"])) or SimpleNamespace(returncode=0))
+    runner._stop(process)  # type: ignore[arg-type]
+    assert calls == [(["taskkill", "/F", "/T", "/PID", "4321"], runner._CREATE_NO_WINDOW)]
+    assert process.stopped
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows process-tree smoke")
+def test_windows_stop_reaps_spawned_descendant(tmp_path: Path) -> None:
+    import ctypes
+
+    pid_path = tmp_path / "child.pid"
+    script = ("import subprocess,sys,time,pathlib; "
+              f"p=subprocess.Popen([sys.executable,'-c','import time; time.sleep(30)']); "
+              f"pathlib.Path({str(pid_path)!r}).write_text(str(p.pid)); time.sleep(30)")
+    process = subprocess.Popen([sys.executable, "-c", script], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    deadline = time.monotonic() + 5
+    while not pid_path.exists() and time.monotonic() < deadline:
+        time.sleep(.01)
+    assert pid_path.exists()
+    child_pid = int(pid_path.read_text())
+    runner._stop(process)  # type: ignore[arg-type]
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    handle = kernel.OpenProcess(0x00100000, False, child_pid)
+    if handle:
+        try:
+            assert kernel.WaitForSingleObject(handle, 0) == 0
+        finally:
+            kernel.CloseHandle(handle)
+
+
 @pytest.mark.skipif(sys.platform != "linux", reason="actual POSIX process-group boundary requires Linux")
 def test_linux_owned_descendant_cannot_hold_timeout_pipes(monkeypatch: pytest.MonkeyPatch) -> None:
     # This launches only test Python, never sshd/nginx or a target host.

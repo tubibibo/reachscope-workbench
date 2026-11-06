@@ -16,6 +16,7 @@ from ...core.models import (
     RunContext,
     WorkbenchError,
 )
+from ...core.uploads import read_upload
 from .demo import access_bytes, auth_bytes, baseline_bytes
 
 MAX_BYTES = 2 * 1024 * 1024
@@ -38,14 +39,10 @@ def _input(uploads: Path, upload_id: str) -> bytes:
     path = uploads / upload_id
     if path.is_symlink() or not path.is_file() or path.resolve().parent != uploads.resolve():
         raise WorkbenchError("UPLOAD_NOT_FOUND", "主机输入不存在或路径无效，请重新上传")
-    try:
-        with path.open("rb") as handle:
-            raw = handle.read(MAX_BYTES + 1)
-    except OSError as exc:
-        raise WorkbenchError("UPLOAD_NOT_FOUND", "无法读取主机输入文件") from exc
-    if not raw or len(raw) > MAX_BYTES:
-        raise WorkbenchError("HOST_INPUT_LIMIT", "主机资料须为非空且不超过 2 MiB 的文件")
-    return raw
+    return read_upload(path, max_bytes=MAX_BYTES,
+                       missing_message="无法读取主机输入文件",
+                       limit_code="HOST_INPUT_LIMIT",
+                       limit_message="主机资料须为非空且不超过 2 MiB 的文件", require_nonempty=True)
 
 
 class HostModule:

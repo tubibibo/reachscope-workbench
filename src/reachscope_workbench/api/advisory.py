@@ -14,7 +14,13 @@ from ..core.advisory_service import AdvisoryService
 from ..core.ai_providers import infer_provider, preset, presets
 from ..core.models import WorkbenchError
 from ..integrations.ai_provider import diagnose_endpoint, diagnose_models, endpoint
-from .contracts import AIConfiguration, AIConsultation, AIDiagnostic, AIModelDiagnostic
+from .contracts import (
+    AIConfiguration,
+    AIConfigurationResponse,
+    AIConsultation,
+    AIDiagnostic,
+    AIModelDiagnostic,
+)
 from .errors import idempotency_key
 
 _ID = re.compile(r"[a-f0-9]{32}\Z")
@@ -29,7 +35,7 @@ def identifier(value: str) -> str:
 def advisory_router(service: AdvisoryService) -> APIRouter:
     router = APIRouter(prefix="/api", tags=["optional-evidence-advisory"])
 
-    @router.get("/ai/config")
+    @router.get("/ai/config", response_model=AIConfigurationResponse)
     async def configuration() -> dict[str, Any]:
         return service.config()
 
@@ -56,7 +62,7 @@ def advisory_router(service: AdvisoryService) -> APIRouter:
                 "limitations": ["连接诊断不发送业务证据、不调用模型、不验证模型输出。",
                                 "使用直连且不读取系统代理；不会跟随重定向或忽略 TLS 证书错误。"]}
 
-    @router.put("/ai/config")
+    @router.put("/ai/config", response_model=AIConfigurationResponse)
     async def configure(payload: AIConfiguration) -> dict[str, Any]:
         base = endpoint(payload.base_url, payload.allow_local)
         model = payload.model.strip()

@@ -939,6 +939,55 @@ export interface components {
       /** Token Limit Field */
       token_limit_field?: ("max_tokens" | "max_completion_tokens") | null;
     };
+    /**
+     * AIConfigurationResponse
+     * @description Safe, explicit configuration status; the API key itself is never returned.
+     */
+    AIConfigurationResponse: {
+      /** Allow Local */
+      allow_local: boolean;
+      /** Base Url */
+      base_url: string;
+      /** Capabilities */
+      capabilities: {
+        [key: string]: boolean;
+      };
+      /** Configuration Sha256 */
+      configuration_sha256: string;
+      /**
+       * Credential Source
+       * @enum {string}
+       */
+      credential_source: "session" | "environment" | "missing";
+      /** Enabled */
+      enabled: boolean;
+      /** Environment Blocked */
+      environment_blocked: boolean;
+      /** Environment Blocked Reason */
+      environment_blocked_reason: string | null;
+      /** Has Key */
+      has_key: boolean;
+      /** Limitations */
+      limitations: string[];
+      /** Model */
+      model: string;
+      /**
+       * Provider Id
+       * @enum {string}
+       */
+      provider_id: "openai_compatible" | "deepseek" | "custom";
+      /** Provider Label */
+      provider_label: string;
+      /** Reasoning Effort */
+      reasoning_effort: string;
+      /** Timeout */
+      timeout: number;
+      /**
+       * Token Limit Field
+       * @enum {string}
+       */
+      token_limit_field: "max_tokens" | "max_completion_tokens";
+    };
     /** AIConsultation */
     AIConsultation: {
       /** Authorization Note */
@@ -1319,9 +1368,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["AIConfigurationResponse"];
         };
       };
     };
@@ -1345,9 +1392,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["AIConfigurationResponse"];
         };
       };
       /** @description Validation Error */

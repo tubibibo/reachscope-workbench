@@ -63,7 +63,8 @@ def endpoint(value: str, allow_local: bool) -> str:
 
 async def _addresses(url: str, allow_local: bool) -> list[str]:
     host = urlsplit(url).hostname
-    assert host is not None
+    if host is None:
+        raise WorkbenchError("AI_NETWORK_ERROR", "无法从模型地址解析主机名")
     try:
         literal = ipaddress.ip_address(host)
         local_allowed = allow_local and literal.is_loopback
