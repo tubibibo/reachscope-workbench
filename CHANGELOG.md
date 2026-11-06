@@ -17,6 +17,24 @@
 - Validation refuses path escapes, symlinks, oversize packs, case-duplicate and
   reserved headers, malformed cookies and unknown fields.
 - Packaging: scenario packs ship in wheel and sdist; build artifacts pinned to LF.
+- Reliability: keep workers alive after terminal persistence errors, recheck schema
+  7 after acquiring the workspace lease, and report when SQLite cannot use WAL.
+- Input and process bounds: reject invalid UTF-8 as input errors, skip malformed
+  smali directives, cap register-range expansion and apkid scan time, and limit
+  decoder memory with platform defaults: 4 GiB committed memory on Windows,
+  8 GiB address space on POSIX to allow JVM reservations. Override either with
+  `REACHSCOPE_WORKER_MEMORY_MB`; malformed `.locals` also counts as unknown syntax.
+- Android export review: an inferred `android:exported=false` is reported as
+  unknown/medium and cannot refute a claim; explicit `exported=false` retains its
+  existing high-confidence result.
+- Host, cloud and AI boundaries: read uploads from verified regular files,
+  distinguish host-scope namespace changes, reap Windows collector process trees,
+  expose environment-credential blocking, and reject hostname-less AI endpoints.
+- Frontend resilience: show a recoverable render fallback, tolerate incomplete
+  historical payloads, preserve retest request errors, accept both AI provider
+  wire spellings and keep workflow rules in one module. No backend workflow
+  outcomes or existing request semantics change; AI config exposes additive
+  credential-block status fields in its response.
 
 ## Workbench 0.14.2 — 2026-11-04
 
