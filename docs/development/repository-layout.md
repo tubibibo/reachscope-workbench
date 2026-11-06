@@ -12,6 +12,8 @@ reachscope-workbench/
 ├── src/
 │   ├── reachscope/                Android 分析引擎及随包分发的合成样本
 │   └── reachscope_workbench/      工作台；api / core / integrations / modules
+│       ├── collectors/           随包分发的主机离线采集器
+│       ├── scenarios/            随包分发的本地教学场景资源
 │       └── static/               前端构建的发布副本，由 Vite 生成
 ├── frontend/
 │   ├── contracts/                本地 OpenAPI 快照

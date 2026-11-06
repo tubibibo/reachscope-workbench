@@ -30,3 +30,4 @@ MANIFEST.in text eol=lf
 
 # 冻结的第三方文件按原字节保留，不做 EOL 归一化
 src/reachscope_workbench/modules/web/legacy/LICENSE -text
+src/reachscope_workbench/collectors/host/LICENSE -text
