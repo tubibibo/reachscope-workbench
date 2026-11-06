@@ -419,6 +419,8 @@ def _canonical_component(package: str, name: str) -> str:
 def _j1_block_reason(component: Component) -> str | None:
     """J1 的两种定义性否定：未导出、签名级权限。"""
     if not component.exported:
+        if component.exported_inferred:
+            return None
         return "not exported"
     protection = component.permission_protection or ""
     if component.permission and "signature" in protection:

@@ -52,18 +52,23 @@ def _conclusion(report: Report) -> str:
     """首页的一句话结论（§8.2 第 1 章）。"""
     if not report.protection.analyzable:
         return "无法分析：检测到强加固，本报告不包含任何可利用性结论。"
+    inferred_export = any(component.exported_inferred for component in report.components)
     if report.findings:
         top = report.findings[0]
-        return (
+        conclusion = (
             f"发现 {len(report.findings)} 条可利用链；"
             f"最高可利用性 {top.exploitability.value}、影响 {top.impact.value}、"
             f"置信度 {top.confidence.value}。"
         )
+        return conclusion + ("另有组件的导出状态仅由规则推断，并非显式声明。" if inferred_export else "")
     if report.counter_examples:
-        return (
+        conclusion = (
             f"未发现可利用链；{len(report.counter_examples)} 个入口已逐条给出反例，"
             "说明为何未纳入。"
         )
+        return conclusion + ("部分组件的导出状态仅由规则推断，无法据此确认可触达性。" if inferred_export else "")
+    if inferred_export:
+        return "未发现入口：未发现已明确声明可被第三方触达的组件；另有组件的导出状态仅由规则推断。"
     return "未发现入口：该 APK 没有声明可被第三方触达的组件，反例列表为空。"
 
 

@@ -48,11 +48,13 @@ def _component(
     impl_present: bool = True,
     permission: str | None = None,
     protection: str | None = None,
+    exported_inferred: bool = False,
 ) -> Component:
     return Component(
         name=name,
         type=ComponentType.ACTIVITY,
         exported=exported,
+        exported_inferred=exported_inferred,
         permission=permission,
         permission_protection=protection,
         impl_present=impl_present,
@@ -190,6 +192,15 @@ def test_unexported_component_is_refuted() -> None:
     assert verdict.status is VerdictStatus.REFUTED
     assert verdict.reason_code is ReasonCode.NOT_ZERO_PERMISSION
     assert verdict.failed_judgment == "J1"
+
+
+def test_inferred_unexported_component_is_not_refuted() -> None:
+    verdict = verify_claim(
+        _report(components=[_component(exported=False, exported_inferred=True)]), _claim()
+    )
+    assert verdict.status is VerdictStatus.UNDECIDABLE
+    assert verdict.status is not VerdictStatus.REFUTED
+    assert any("exported_inferred" in reason for reason in verdict.coverage.reasons)
 
 
 def test_signature_permission_is_refuted() -> None:

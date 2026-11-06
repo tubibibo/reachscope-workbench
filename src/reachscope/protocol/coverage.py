@@ -48,6 +48,11 @@ class CoverageView(IRSerializable):
                 reasons.append(f"protection.label={label}：加固/混淆可能隐藏代码")
                 break
 
+        if any(component.exported_inferred and not component.exported for component in report.components):
+            reasons.append(
+                "Component.exported_inferred=true：未导出状态来自推断，不能作为显式访问边界"
+            )
+
         warnings = report.meta.warnings
         if warnings:
             reasons.append(

@@ -20,6 +20,7 @@ from reachscope.extract.webview import extract_webviews
 from reachscope.ingest.manifest import parse_manifest
 from reachscope.ingest.smali import build_index
 from reachscope.ir.model import (
+    Component,
     CounterExample,
     EntryKind,
     Meta,
@@ -169,6 +170,17 @@ def test_no_entries_is_stated_explicitly() -> None:
     html = render_html(report)
     assert "未发现入口" in html
     assert "未发现满足纳入条件的链路" in html
+
+
+def test_inferred_export_conclusion_is_not_absolute() -> None:
+    report = Report(
+        meta=Meta(package="com.example.inferred"),
+        components=[Component(name="com.example.inferred.Main", exported=False, exported_inferred=True)],
+    )
+    html = render_html(report)
+    assert "已明确声明" in html
+    assert "推断" in html
+    assert "没有声明可被第三方触达的组件" not in html
 
 
 # --- 自动转义：类名/理由里的 HTML 不能变成标记 -------------------------------

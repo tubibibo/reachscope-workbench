@@ -60,6 +60,18 @@ def test_j1_exported_false_is_fail_not_exported() -> None:
     assert result.confidence is Level.HIGH
 
 
+def test_j1_inferred_unexported_is_unknown_medium() -> None:
+    component = next(
+        item for item in parse_manifest(FIXTURES / "manifests" / "exported_inferred_target31.xml").components
+        if item.name.endswith("DeepLinkActivity")
+    )
+    assert component.exported is False and component.exported_inferred is True
+    result = j1(component)
+    assert result.result is JudgmentResult.UNKNOWN
+    assert result.confidence is Level.MEDIUM
+    assert "inferred" in result.reason
+
+
 def test_j1_no_permission_is_pass() -> None:
     component = make_component()
     result = j1(component)

@@ -51,6 +51,11 @@ OWNERSHIP_TO_LEVEL: dict[Ownership, Level] = {
 def j1(component: Component) -> Judgment:
     """零特权可达性（§6.3 J1）。"""
     if not component.exported:
+        if component.exported_inferred:
+            return _judgment(
+                "J1", JudgmentResult.UNKNOWN, Level.MEDIUM,
+                "not exported (inferred; no explicit android:exported)", component.source,
+            )
         return _judgment(
             "J1", JudgmentResult.FAIL, Level.HIGH, "not exported", component.source,
         )
