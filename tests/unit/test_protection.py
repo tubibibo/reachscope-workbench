@@ -171,3 +171,28 @@ def test_run_apkid_composes_category_labels(
 
     labels = protection_mod._run_apkid(make_apk())
     assert labels == ["compiler::dexlib", "packer::dexguard"]
+
+
+def test_run_apkid_returns_on_deadline(
+    make_apk: Callable[..., Path], monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture,
+) -> None:
+    import sys
+    import time
+
+    class SlowApkid:
+        def __init__(self, _handle: Any) -> None:
+            pass
+
+        def scan(self) -> dict[str, Any]:
+            time.sleep(0.2)
+            return {}
+
+    fake_module = type(sys)("apkid")
+    fake_module.APKID = SlowApkid
+    monkeypatch.setitem(sys.modules, "apkid", fake_module)
+    monkeypatch.setitem(sys.modules, "apkid.apkid", fake_module)
+    with caplog.at_level(logging.WARNING):
+        started = time.monotonic()
+        result = protection_mod._run_apkid(make_apk(), timeout=0.02)
+    assert result is None and time.monotonic() - started < 0.15
+    assert "超时" in caplog.text

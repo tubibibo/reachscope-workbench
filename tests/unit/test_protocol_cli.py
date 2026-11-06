@@ -82,6 +82,28 @@ def test_verify_refuted_is_still_exit_zero(
     assert payload["reason_code"] == "NOT_ZERO_PERMISSION"
 
 
+@pytest.mark.parametrize("target", ["report", "claim", "answers"])
+def test_verify_non_utf8_files_are_input_errors(
+    target: str, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    report = tmp_path / "report.json"
+    claim = tmp_path / "claim.json"
+    answers = tmp_path / "answers.json"
+    report.write_bytes((GOLDEN / "01_positive_deeplink_bridge_sink.json").read_bytes())
+    claim.write_bytes((EXAMPLES / "claims" / "supported.json").read_bytes())
+    answers.write_bytes(b'{"schema_version":"0.1","answers":[]}')
+    {"report": report, "claim": claim, "answers": answers}[target].write_bytes(
+        '{"note":"中文"}'.encode("gbk")
+    )
+    code = main([
+        "verify", "--report", str(report), "--claim", str(claim), "--answers", str(answers),
+    ])
+    captured = capsys.readouterr()
+    assert code == ExitCode.INPUT_ERROR
+    assert "不是 UTF-8" in captured.err
+    assert "INTERNAL_ERROR" not in captured.err
+
+
 def test_verify_with_answers(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     answers = _write(
         tmp_path / "answers.json",

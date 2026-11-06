@@ -49,6 +49,8 @@ DEFAULT_FORMAT = "json,html"
 VALID_FORMATS = ("json", "html")
 VALID_MIN_EXPLOITABILITY = ("low", "medium", "high")
 
+__all__ = ["main"]
+
 #: T0.1 还没有解析 manifest，包名未知时的占位符（见 DECISIONS.md D-002）。
 UNKNOWN_PACKAGE = "<unknown-package>"
 
@@ -406,7 +408,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     handler: Any = args.handler
     try:
         return int(handler(args))
-    except Exception:
+    except Exception:  # CLI 最外层必须把未捕获异常转为 INTERNAL_ERROR，避免 traceback 泄露给调用方。
         logger.exception("内部错误：未捕获异常")
         return int(ExitCode.INTERNAL_ERROR)
 

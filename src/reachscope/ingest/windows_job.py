@@ -7,9 +7,12 @@ or killing every Java process. POSIX callers use their own process group instead
 from __future__ import annotations
 
 import ctypes
+import logging
 import os
 from ctypes import wintypes
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 class _BasicLimits(ctypes.Structure):
@@ -44,6 +47,11 @@ class _ExtendedLimits(ctypes.Structure):
     ]
 
 
+def apply_job_limits(limits: _ExtendedLimits, memory_limit_bytes: int) -> None:
+    limits.BasicLimitInformation.LimitFlags = 0x2000 | 0x100
+    limits.ProcessMemoryLimit = memory_limit_bytes
+
+
 class WindowsJob:
     """The handle's lifetime owns descendants even if the worker exits first."""
 
@@ -70,7 +78,7 @@ class WindowsJob:
         self._kernel = kernel
         self._handle: Any = handle
         limits = _ExtendedLimits()
-        limits.BasicLimitInformation.LimitFlags = 0x2000  # JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        apply_job_limits(limits, worker_memory_limit_bytes())
         if not kernel.SetInformationJobObject(handle, 9, ctypes.byref(limits), ctypes.sizeof(limits)):
             self.close()
             raise OSError("Cannot configure worker Job Object")
@@ -91,3 +99,22 @@ class WindowsJob:
         if self._handle:
             self._kernel.CloseHandle(self._handle)
             self._handle = None
+
+
+def worker_memory_limit_bytes() -> int:
+    """Cap Windows committed memory at 4 GiB, POSIX address space at 8 GiB.
+
+    JVM virtual reservations need more room than Windows committed memory.
+    Operators may override either limit with REACHSCOPE_WORKER_MEMORY_MB.
+    """
+    default_limit = (4 if os.name == "nt" else 8) * 1024**3
+    value = os.environ.get("REACHSCOPE_WORKER_MEMORY_MB")
+    try:
+        limit = int(value) * 1024 * 1024 if value is not None else default_limit
+    except ValueError:
+        logger.warning("Invalid REACHSCOPE_WORKER_MEMORY_MB; using %d MiB", default_limit // 1024**2)
+        limit = default_limit
+    if limit <= 0:
+        logger.warning("Invalid REACHSCOPE_WORKER_MEMORY_MB; using %d MiB", default_limit // 1024**2)
+        return default_limit
+    return limit

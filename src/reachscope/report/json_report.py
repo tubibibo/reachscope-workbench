@@ -84,7 +84,12 @@ def load_json(path: str | Path) -> Report:
     未版本化的手写数据应重新生成，不能静默当作完整分析结果。
     文件不是合法 JSON、顶层不是对象或版本不兼容时抛 IRDeserializeError。
     """
-    raw = Path(path).read_text(encoding="utf-8")
+    try:
+        raw = Path(path).read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise IRDeserializeError(
+            f"{path}: 文件不是 UTF-8", reason="not_utf8", detail=str(exc)
+        ) from exc
     try:
         data = json.loads(raw)
     except json.JSONDecodeError as exc:

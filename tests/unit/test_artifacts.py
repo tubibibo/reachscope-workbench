@@ -294,7 +294,7 @@ def test_non_json_configuration_is_rejected(
 
 
 def test_missing_manifest_and_broken_method_source_are_explicit(
-    tmp_path: Path, decoded: Path, report: Report
+    tmp_path: Path, decoded: Path, report: Report, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     store = ArtifactStore(tmp_path / "store")
     manifest = decoded / "AndroidManifest.xml"
@@ -304,10 +304,26 @@ def test_missing_manifest_and_broken_method_source_are_explicit(
         store.create(decoded, report)
     assert caught.value.code == "INVALID_MANIFEST"
     manifest.write_bytes(data)
-    (decoded / SOURCE_PATH).write_text(SOURCE.replace(".locals 1", ".locals BAD"), encoding="utf-8")
+
+    def fail_to_index(_root: Path) -> None:
+        raise ValueError("synthetic smali parser failure")
+
+    monkeypatch.setattr("reachscope.artifacts.store.build_index", fail_to_index)
     with pytest.raises(ArtifactError) as caught:
         store.create(decoded, report)
     assert caught.value.code == "INVALID_SOURCE"
+
+
+def test_malformed_locals_artifact_preserves_source_and_warning(
+    tmp_path: Path, decoded: Path, report: Report
+) -> None:
+    source = SOURCE.replace(".locals 1", ".locals BAD")
+    (decoded / SOURCE_PATH).write_text(source, encoding="utf-8")
+    store = ArtifactStore(tmp_path / "store")
+    artifact = store.create(decoded, report)
+    assert (artifact.path / "source" / SOURCE_PATH).read_text(encoding="utf-8") == source
+    assert any("1 行未知语法" in str(warning) for warning in artifact.metadata["warnings"])
+    assert store.open(artifact.id).metadata["warnings"] == artifact.metadata["warnings"]
 
 
 @pytest.mark.parametrize("manifest", ["<broken", "<application/>", '<!DOCTYPE manifest [<!ENTITY a "x">]><manifest/>'])

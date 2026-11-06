@@ -56,6 +56,10 @@ def load_answers(path: str | Path) -> AnswersDoc:
     answers_path = Path(path)
     try:
         raw = answers_path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise ClaimError(
+            f"answers 文件不是 UTF-8：{answers_path}", reason="not_utf8", detail=str(exc)
+        ) from exc
     except OSError as exc:
         raise ClaimError(f"answers 文件无法读取：{answers_path}（{exc}）") from exc
     try:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -97,10 +98,29 @@ def test_load_claim_missing_file() -> None:
         load_claim(Path("does-not-exist.json"))
 
 
+def test_structured_error_reason_and_detail_are_available() -> None:
+    error = ClaimError("bad input", reason="not_utf8", detail="offset 0")
+    assert error.reason == "not_utf8"
+    assert error.detail == "offset 0"
+
+
 def test_load_claim_from_file(tmp_path: Path) -> None:
     path = tmp_path / "claim.json"
     path.write_text(json.dumps(_base_claim()), encoding="utf-8")
     assert load_claim(path).entry.name.endswith("MainActivity")
+
+
+@pytest.mark.parametrize("loader,filename", [(load_claim, "claim.json"), (load_answers, "answers.json")])
+def test_protocol_loaders_report_non_utf8_as_structured_input_error(
+    tmp_path: Path, loader: Callable[[str | Path], object], filename: str
+) -> None:
+    path = tmp_path / filename
+    path.write_bytes(b"\x81\x82\x83")
+    with pytest.raises(ClaimError) as error:
+        loader(path)
+    assert error.value.reason == "not_utf8"
+    assert error.value.detail
+    assert str(path) in str(error.value) and "不是 UTF-8" in str(error.value)
 
 
 def test_question_id_is_stable_and_key_suffix_distinguishes() -> None:

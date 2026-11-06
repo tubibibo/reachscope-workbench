@@ -54,6 +54,11 @@ CLAIM_SINK_KINDS: frozenset[str] = STEP_SINK_KINDS | {"any", "bridge"}
 class ClaimError(ValueError):
     """claim / 回答文件非法（语法、必填、词表或多义）。"""
 
+    def __init__(self, message: str, *, reason: str = "invalid_data", detail: str | None = None) -> None:
+        super().__init__(message)
+        self.reason = reason
+        self.detail = detail
+
 
 class ClaimKind(StrEnum):
     """首版只支持「入口 → sink 可达性」。"""
@@ -169,6 +174,10 @@ def load_claim(path: str | Path) -> Claim:
     claim_path = Path(path)
     try:
         raw = claim_path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise ClaimError(
+            f"claim 文件不是 UTF-8：{claim_path}", reason="not_utf8", detail=str(exc)
+        ) from exc
     except OSError as exc:
         raise ClaimError(f"claim 文件无法读取：{claim_path}（{exc}）") from exc
     return parse_claim(raw, source=str(claim_path))

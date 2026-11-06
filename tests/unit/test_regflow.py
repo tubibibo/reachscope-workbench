@@ -267,6 +267,33 @@ def test_parse_smali_file_still_counts_zero_unknown_for_fixtures() -> None:
         assert warnings == []
 
 
+def test_register_range_expansion_is_bounded() -> None:
+    from reachscope.graph.regflow import _expand
+
+    assert len(_expand("v0", "v2000000000")) == 2
+    assert _expand("v0", "v3") == ["v0", "v1", "v2", "v3"]
+
+
+def test_register_range_expansion_at_budget() -> None:
+    from reachscope.graph.regflow import _expand
+
+    assert len(_expand("v0", "v65535")) == 65536
+    assert _expand("v0", "v65536") == ["v0", "v65536"]
+
+
+def test_parse_invoke_handles_huge_register_range() -> None:
+    import time
+
+    from reachscope.graph.regflow import parse_invoke
+    from reachscope.ingest.smali import Instruction
+
+    instruction = Instruction(0, "invoke-static", "{v0 .. v2000000000}, Lx;->f()V", 0, 1)
+    started = time.monotonic()
+    parsed = parse_invoke(instruction)
+    assert parsed is not None and parsed.args == ("v0", "v2000000000")
+    assert time.monotonic() - started < 1
+
+
 # --- M1：跨分支复用寄存器时按到达定义取 key -------------------------------
 
 

@@ -10,11 +10,14 @@
 from __future__ import annotations
 
 import logging
+import queue
+import threading
 from pathlib import Path
 
 from ..ir.model import Protection
 
 logger = logging.getLogger("reachscope.ingest.protection")
+APKID_TIMEOUT_SECONDS = 120
 
 #: APKiD 标签的类别前缀（形如 `packer::dexguard`，见 fixture 08 的 protection.json）。
 LABEL_SEPARATOR = "::"
@@ -91,7 +94,7 @@ def is_strong_protection(labels: list[str]) -> bool:
     return False
 
 
-def _run_apkid(apk_path: Path) -> list[str] | None:
+def _run_apkid(apk_path: Path, timeout: float = APKID_TIMEOUT_SECONDS) -> list[str] | None:
     """调用 apkid 扫描，返回去重排序的标签列表；apkid 不可用返回 None。
 
     APKiD 2.x 的 Python API 见其文档；调用失败按“不可用”处理（警告 + 短路），
@@ -102,12 +105,24 @@ def _run_apkid(apk_path: Path) -> list[str] | None:
     except ImportError:
         return None
 
-    # “apkid 不可用”由调用方在 detect_protection 统一记 warning；这里只负责返回 None。
-    try:
-        with apk_path.open("rb") as handle:
-            result = apkid_mod.APKID(handle).scan()
-    except Exception as exc:  # noqa: BLE001 —— 可选依赖的任何失败都按“不可用”处理
-        logger.warning("apkid 调用失败：%s", exc)
+    outcome: queue.Queue[tuple[bool, object]] = queue.Queue(maxsize=1)
+
+    def scan() -> None:
+        try:
+            with apk_path.open("rb") as handle:
+                outcome.put((True, apkid_mod.APKID(handle).scan()))
+        except Exception as exc:  # noqa: BLE001 —— 可选依赖调用失败按“不可用”处理
+            outcome.put((False, exc))
+
+    worker = threading.Thread(target=scan, name="reachscope-apkid", daemon=True)
+    worker.start()
+    worker.join(timeout)
+    if worker.is_alive():
+        logger.warning("apkid 扫描超时（>%ss），按不可用降级", timeout)
+        return None
+    succeeded, result = outcome.get_nowait()
+    if not succeeded:
+        logger.warning("apkid 调用失败：%s", result)
         return None
 
     labels: set[str] = set()

@@ -256,11 +256,32 @@ def test_load_json_round_trips(tmp_path: Path) -> None:
     assert load_json(path) == normalize_report(report)
 
 
+def test_report_json_distinguishes_explicit_and_inferred_export() -> None:
+    data = json.loads(render_json(Report(
+        meta=Meta(package="com.example.app"),
+        components=[
+            Component(name="com.example.Explicit", exported=False),
+            Component(name="com.example.Inferred", exported=False, exported_inferred=True),
+        ],
+    )))
+    assert [item["exported_inferred"] for item in data["components"]] == [False, True]
+
+
 def test_load_json_rejects_broken_json(tmp_path: Path) -> None:
     path = tmp_path / "broken.json"
     path.write_text("{not json", encoding="utf-8")
     with pytest.raises(IRDeserializeError):
         load_json(path)
+
+
+def test_load_json_non_utf8_is_structured_input_error(tmp_path: Path) -> None:
+    path = tmp_path / "gbk.json"
+    path.write_bytes("{}".encode("gbk") + b"\x81")
+    with pytest.raises(IRDeserializeError) as error:
+        load_json(path)
+    assert error.value.reason == "not_utf8"
+    assert error.value.detail
+    assert str(path) in str(error.value) and "不是 UTF-8" in str(error.value)
 
 
 def test_load_json_rejects_non_object(tmp_path: Path) -> None:

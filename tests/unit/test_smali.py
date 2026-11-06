@@ -9,6 +9,8 @@ import shutil
 import time
 from pathlib import Path
 
+import pytest
+
 from reachscope.ingest.smali import (
     Instruction,
     SmaliIndex,
@@ -168,6 +170,65 @@ def test_unknown_syntax_is_counted_not_fatal() -> None:
     # .bogus-directive / .weird-directive / stray-instruction 三行
     assert any("3 行未知语法" in warning for warning in index.warnings)
     assert index.class_count == 1
+
+
+def test_malformed_numeric_directives_count_as_unknown(tmp_path: Path) -> None:
+    path = tmp_path / "Malformed.smali"
+    path.write_text(
+        ".class public Lx;\n.super Ljava/lang/Object;\n.method public f()V\n"
+        ".line xyz\n.registers abc\n.locals abc\nreturn-void\n.end method\n",
+        encoding="utf-8",
+    )
+    classes, _, unknown = parse_smali_file(path)
+    assert unknown == 3
+    assert len(classes) == 1 and classes[0].methods[0].instructions[0].opcode == "return-void"
+
+
+@pytest.mark.parametrize("locals_count", [0, 3])
+def test_invalid_locals_preserves_previous_numeric_declaration(tmp_path: Path, locals_count: int) -> None:
+    path = tmp_path / "Locals.smali"
+    path.write_text(
+        ".class public Lx;\n.super Ljava/lang/Object;\n.method public f(J)V\n"
+        f".locals {locals_count}\n.locals abc\nreturn-void\n.end method\n",
+        encoding="utf-8",
+    )
+    classes, warnings, unknown = parse_smali_file(path)
+    method = classes[0].methods[0]
+    assert unknown == 1 and warnings == []
+    assert method.registers == locals_count + 3  # this + wide parameter
+    assert method.instructions[0].opcode == "return-void"
+
+
+def test_scan_with_malformed_numeric_directives_is_not_internal_error(
+    tmp_path: Path, make_apk, monkeypatch, capsys,
+) -> None:
+    from reachscope import cli
+    from reachscope.exitcodes import ExitCode
+
+    decoded = tmp_path / "decoded"
+    smali = decoded / "smali" / "com" / "example" / "Malformed.smali"
+    smali.parent.mkdir(parents=True)
+    smali.write_text(
+        ".class public Lcom/example/Malformed;\n.super Ljava/lang/Object;\n"
+        ".method public static run()V\n.line xyz\n.registers abc\n.locals abc\nreturn-void\n.end method\n",
+        encoding="utf-8",
+    )
+    (decoded / "AndroidManifest.xml").write_text(
+        '<manifest xmlns:android="http://schemas.android.com/apk/res/android" '
+        'package="com.example.malformed"><uses-sdk android:targetSdkVersion="28"/>'
+        "<application/></manifest>",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(cli, "resolve_apktool", lambda _value: Path("apktool"))
+    monkeypatch.setattr(cli, "check_apktool_version", lambda _path: "2.9.3")
+    monkeypatch.setattr(cli, "run_apktool", lambda *_args, **_kwargs: decoded)
+    result = cli.main([
+        "scan", str(make_apk()), "--no-apkid", "--no-artifacts",
+        "--out", str(tmp_path / "out"), "--format", "json",
+    ])
+    assert result != ExitCode.INTERNAL_ERROR
+    assert result in {ExitCode.OK, ExitCode.INPUT_ERROR}
+    assert "INTERNAL_ERROR" not in capsys.readouterr().err
 
 
 def test_try_catch_and_switch_blocks_are_known_syntax() -> None:

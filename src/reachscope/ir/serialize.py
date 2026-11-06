@@ -39,6 +39,11 @@ _MISSING = object()
 class IRDeserializeError(ValueError):
     """IR 反序列化失败：字段取值或类型非法。"""
 
+    def __init__(self, message: str, *, reason: str = "invalid_data", detail: str | None = None) -> None:
+        super().__init__(message)
+        self.reason = reason
+        self.detail = detail
+
 
 class IRSerializable:
     """所有 IR dataclass 的公共基类，只提供 `to_dict()` / `from_dict()` 转发。"""

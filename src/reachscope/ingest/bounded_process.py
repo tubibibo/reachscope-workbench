@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import signal
 import subprocess
 import threading
 import time
+from importlib import import_module
 from typing import Any, BinaryIO
 
 from .windows_job import WindowsJob
 
 OUTPUT_LIMIT = 64 * 1024
+logger = logging.getLogger(__name__)
 
 # Windows-only creation flags; the non-Windows subprocess module omits them.
 _CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
@@ -26,6 +29,8 @@ def run_bounded(command: list[str], *, timeout: float) -> subprocess.CompletedPr
     """Drain both raw pipes, fail on overflow and reclaim only our process tree."""
     options: dict[str, Any] = {"start_new_session": True} if os.name != "nt" else {
         "creationflags": _CREATE_NO_WINDOW | _CREATE_NEW_PROCESS_GROUP}
+    if os.name != "nt":
+        options["preexec_fn"] = memory_limit_preexec()
     process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE, shell=False, bufsize=0, **options)
     job: WindowsJob | None = None
@@ -103,3 +108,29 @@ def run_bounded(command: list[str], *, timeout: float) -> subprocess.CompletedPr
     return subprocess.CompletedProcess(command, process.returncode if process.returncode is not None else -1,
                                        captured[0].decode("utf-8", errors="replace"),
                                        captured[1].decode("utf-8", errors="replace"))
+
+
+def worker_memory_limit_bytes() -> int:
+    from .windows_job import worker_memory_limit_bytes as configured_limit
+
+    return configured_limit()
+
+
+def memory_limit_preexec() -> Any:
+    """Build a POSIX child setup callback; absent resource support is non-fatal."""
+    limit = worker_memory_limit_bytes()
+
+    def apply_limit() -> None:
+        try:
+            resource = import_module("resource")
+        except ImportError:
+            logger.debug("resource module unavailable; worker address-space limit skipped")
+            return
+        set_limit = getattr(resource, "setrlimit", None)
+        address_space = getattr(resource, "RLIMIT_AS", None)
+        if set_limit is None or address_space is None:
+            logger.debug("RLIMIT_AS unavailable; worker address-space limit skipped")
+            return
+        set_limit(address_space, (limit, limit))
+
+    return apply_limit

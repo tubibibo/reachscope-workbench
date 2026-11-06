@@ -249,13 +249,25 @@ def parse_smali_file(
                 # `.end packed-switch` / `.end field` …：块结束，静默跳过（D-055）。
                 pass
             elif directive == ".line":
-                java_line = int(parts[1]) if len(parts) > 1 else 0
+                try:
+                    java_line = int(parts[1]) if len(parts) > 1 else 0
+                except ValueError:
+                    unknown += 1
+                    logger.debug("未知伪指令 %s:%d：%s", file_path, file_line, stripped)
             elif directive == ".registers":
                 if current_method is not None and len(parts) > 1:
-                    current_method.declared_registers = int(parts[1])
+                    try:
+                        current_method.declared_registers = int(parts[1])
+                    except ValueError:
+                        unknown += 1
+                        logger.debug("未知伪指令 %s:%d：%s", file_path, file_line, stripped)
             elif directive == ".locals":
                 if current_method is not None and len(parts) > 1:
-                    current_method.locals = int(parts[1])
+                    try:
+                        current_method.locals = int(parts[1])
+                    except ValueError:
+                        unknown += 1
+                        logger.debug("未知伪指令 %s:%d：%s", file_path, file_line, stripped)
             elif directive == ".annotation":
                 visibility = parts[1] if len(parts) > 1 else ""
                 type_ = parts[2] if len(parts) > 2 else ""

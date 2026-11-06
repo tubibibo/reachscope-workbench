@@ -935,6 +935,9 @@ def _parse_registers(text: str) -> tuple[str, ...]:
     return tuple(registers)
 
 
+MAX_REGISTER_RANGE = 65536
+
+
 def _expand(start: str, end: str) -> list[str]:
     """展开 `v0 .. v3`（同一前缀，按数字递增）。"""
     prefix_start = _prefix(start)
@@ -944,6 +947,9 @@ def _expand(start: str, end: str) -> list[str]:
     try:
         first, last = int(start[len(prefix_start) :]), int(end[len(prefix_end) :])
     except ValueError:
+        return [start, end]
+    if last - first + 1 > MAX_REGISTER_RANGE:
+        # Preserve malformed/oversized ranges as unknown endpoints; do not materialize them.
         return [start, end]
     return [f"{prefix_start}{value}" for value in range(first, last + 1)]
 

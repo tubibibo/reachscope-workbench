@@ -181,5 +181,11 @@ def test_layers_dict_covers_all_known_layers() -> None:
     assert not missing, f"新增包/顶层模块没在 LAYER_DEPS 里登记：{sorted(missing)}"
 
 
+def test_cli_declares_its_public_entry_point() -> None:
+    from reachscope.cli import __all__
+
+    assert __all__ == ["main"]
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))
