@@ -124,6 +124,7 @@ export default function App() {
   const [version, setVersion] = useState("");
   const [connected, setConnected] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
   const { jobs, total, loading, loadingMore, error, refresh, loadMore } =
     useJobs();
   useEffect(() => {
@@ -215,6 +216,9 @@ export default function App() {
   }
   return (
     <div className="app-shell">
+      <div className="sr-only" role="status" aria-live="polite">
+        {announcement}
+      </div>
       <a
         className="skip-link"
         href="#main-content"
@@ -433,6 +437,7 @@ export default function App() {
               changed={() => {
                 void refresh();
               }}
+              announce={setAnnouncement}
             />
           ) : view === "ai" ? (
             <AIPreferences />
@@ -880,13 +885,28 @@ function JobDetail({
   id,
   back,
   changed,
+  announce,
 }: {
   id: string;
   back: () => void;
   changed: () => void;
+  announce: (message: string) => void;
 }) {
   const { job, events, error, loading, refresh } = useJob(id);
+  const previousStatus = useRef<string | null>(null);
+  useEffect(() => {
+    if (!job) return;
+    if (previousStatus.current && previousStatus.current !== job.status) {
+      announce(
+        isActive(job)
+          ? `任务 ${job.name} 开始执行`
+          : `任务 ${job.name} ${statusLabelText(job.status)}`,
+      );
+    }
+    previousStatus.current = job.status;
+  }, [job, announce]);
   const [tab, setTab] = useState<DetailTab>("result");
+  const [confirmRetry, setConfirmRetry] = useState(false);
   const [selectedEvidence, setSelectedEvidence] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
   const [actionRequestId, setActionRequestId] = useState<string>();
@@ -989,7 +1009,10 @@ function JobDetail({
               type="button"
               className="icon-button"
               aria-label="刷新任务详情"
-              onClick={() => refresh()}
+              onClick={() => {
+                refresh();
+                announce("任务详情已刷新");
+              }}
             >
               <RefreshCw size={13} />
             </button>
@@ -1037,6 +1060,13 @@ function JobDetail({
               className="button button-secondary"
               disabled={busy}
               onClick={() => {
+                if (!confirmRetry) {
+                  setConfirmRetry(true);
+                  announce("再次点击确认重新分析");
+                  window.setTimeout(() => setConfirmRetry(false), 3000);
+                  return;
+                }
+                setConfirmRetry(false);
                 void action("retry");
               }}
             >
@@ -1045,7 +1075,7 @@ function JobDetail({
               ) : (
                 <RefreshCw size={13} />
               )}
-              重新分析
+              {confirmRetry ? "确认重新分析" : "重新分析"}
             </button>
           )}
         </div>
@@ -1086,7 +1116,15 @@ function JobDetail({
             key={item.id}
             role="tab"
             aria-selected={tab === item.id}
-            onClick={() => setTab(item.id)}
+            aria-controls="detail-panel"
+            onClick={() => {
+              setTab(item.id);
+              requestAnimationFrame(() => {
+                document
+                  .getElementById("detail-panel")
+                  ?.focus({ preventScroll: true });
+              });
+            }}
           >
             {item.id === "result" ? (
               <Activity size={14} />
@@ -1102,7 +1140,12 @@ function JobDetail({
           </button>
         ))}
       </div>
-      <div role="tabpanel" className="detail-body">
+      <div
+        role="tabpanel"
+        id="detail-panel"
+        className="detail-body"
+        tabIndex={-1}
+      >
         {tab === "result" &&
           (result ? (
             <>

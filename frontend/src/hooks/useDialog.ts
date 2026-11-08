@@ -9,10 +9,12 @@ export function useDialog(open: boolean, close: () => void) {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
     const controls = () =>
-      ref.current?.querySelectorAll<HTMLElement>(
-        'button:not(:disabled),a[href],input,select,textarea,[tabindex="0"]',
-      );
-    controls()?.[0]?.focus();
+      Array.from(
+        ref.current?.querySelectorAll<HTMLElement>(
+          'button:not(:disabled),a[href],input,select,textarea,[tabindex="0"]',
+        ) ?? [],
+      ).filter((item) => item.getClientRects().length > 0);
+    controls()[0]?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -20,8 +22,8 @@ export function useDialog(open: boolean, close: () => void) {
       }
       if (event.key === "Tab") {
         const list = controls();
-        const first = list?.[0],
-          last = list?.[list.length - 1];
+        const first = list[0],
+          last = list[list.length - 1];
         if (event.shiftKey && document.activeElement === first) {
           event.preventDefault();
           last?.focus();
