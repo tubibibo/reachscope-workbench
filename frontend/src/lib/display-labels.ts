@@ -70,3 +70,15 @@ export const observationCategoryText = (value: string): string =>
 
 export const evidenceKindText = (value: string): string =>
   evidenceKindLabel[value] ?? value;
+
+// AI advisory run statuses — core/advisory_service.py records.finish()
+export const advisoryStatusLabel: Record<string, string> = {
+  ok: "成功",
+  failed: "失败",
+  running: "进行中",
+  cancelled: "已取消",
+  unknown: "未知",
+};
+
+export const advisoryStatusText = (value: string): string =>
+  advisoryStatusLabel[value] ?? value;

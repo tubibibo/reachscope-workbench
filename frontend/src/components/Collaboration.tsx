@@ -10,6 +10,8 @@ import {
   X,
 } from "lucide-react";
 import { api } from "../lib/api";
+import { confidenceLabelText, severityLabelText } from "../lib/display-labels";
+import { RawCode } from "./Common";
 import type {
   Asset,
   Candidate,
@@ -780,7 +782,16 @@ function Workspace({
                       {item.asset_name} · {item.job_name}
                     </small>
                     <span className="case-confidence">
-                      {item.severity} / {item.confidence}
+                      {severityLabelText(item.severity)}
+                      <RawCode
+                        value={item.severity}
+                        text={severityLabelText(item.severity)}
+                      />{" "}
+                      / {confidenceLabelText(item.confidence)}
+                      <RawCode
+                        value={item.confidence}
+                        text={confidenceLabelText(item.confidence)}
+                      />
                     </span>
                   </div>
                   {view === "blue" ? (
@@ -1040,7 +1051,16 @@ function AddCandidate({
                 {candidates.map((item) => (
                   <article key={`${item.source_kind}-${item.source_ref}`}>
                     <span className="eyebrow">
-                      {item.severity} / {item.confidence}
+                      {severityLabelText(item.severity)}
+                      <RawCode
+                        value={item.severity}
+                        text={severityLabelText(item.severity)}
+                      />{" "}
+                      / {confidenceLabelText(item.confidence)}
+                      <RawCode
+                        value={item.confidence}
+                        text={confidenceLabelText(item.confidence)}
+                      />
                     </span>
                     <h3>{item.title}</h3>
                     <p>{item.description}</p>

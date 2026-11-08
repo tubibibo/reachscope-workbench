@@ -199,7 +199,7 @@ def main() -> int:
                 page.set_viewport_size({"width": 1440, "height": 1000})
                 page.goto(args.base_url + f"/#/engagements/{file_workspace['id']}/cases/{file_case['id']}")
                 page.get_by_role("tab", name="蓝队 · 整改复测", exact=True).click()
-                page.get_by_role("button", name="配置 / 应用有修订文件？", exact=False).click()
+                page.get_by_role("button", name="如何关联修订文件", exact=False).click()
                 expect(page.get_by_label("选择修订输入", exact=True).locator(f"option[value='{revised_asset['id']}']")).to_have_count(1)
                 page.get_by_label("选择修订输入", exact=True).select_option(revised_asset["id"])
                 assert page.get_by_role("button", name="关联修订文件", exact=False).is_disabled()

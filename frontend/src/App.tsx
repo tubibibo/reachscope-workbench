@@ -276,7 +276,9 @@ export default function App() {
           >
             <LayoutDashboard size={17} />
             <span>分析总览</span>
-            <span className="nav-count">{jobs.length}</span>
+            {jobs.length > 0 && (
+              <span className="nav-count">{jobs.length}</span>
+            )}
           </button>
           <button
             className={view === "ai" && !selectedId ? "active" : ""}
@@ -291,9 +293,11 @@ export default function App() {
           >
             <Smartphone size={17} />
             <span>Android</span>
-            <span className="nav-count">
-              {jobs.filter((job) => jobAssetKind(job) === "android").length}
-            </span>
+            {jobs.some((job) => jobAssetKind(job) === "android") && (
+              <span className="nav-count">
+                {jobs.filter((job) => jobAssetKind(job) === "android").length}
+              </span>
+            )}
           </button>
           <button
             className={view === "web" && !selectedId ? "active" : ""}
@@ -301,9 +305,11 @@ export default function App() {
           >
             <Globe2 size={17} />
             <span>Web</span>
-            <span className="nav-count">
-              {jobs.filter((job) => jobAssetKind(job) === "website").length}
-            </span>
+            {jobs.some((job) => jobAssetKind(job) === "website") && (
+              <span className="nav-count">
+                {jobs.filter((job) => jobAssetKind(job) === "website").length}
+              </span>
+            )}
           </button>
           <button
             className={view === "cloud" && !selectedId ? "active" : ""}
@@ -311,9 +317,11 @@ export default function App() {
           >
             <Cloud size={17} />
             <span>云资产</span>
-            <span className="nav-count">
-              {jobs.filter((job) => jobAssetKind(job) === "cloud").length}
-            </span>
+            {jobs.some((job) => jobAssetKind(job) === "cloud") && (
+              <span className="nav-count">
+                {jobs.filter((job) => jobAssetKind(job) === "cloud").length}
+              </span>
+            )}
           </button>
           <button
             className={view === "host" && !selectedId ? "active" : ""}
@@ -321,9 +329,11 @@ export default function App() {
           >
             <Server size={17} />
             <span>主机防御</span>
-            <span className="nav-count">
-              {jobs.filter((job) => jobAssetKind(job) === "host").length}
-            </span>
+            {jobs.some((job) => jobAssetKind(job) === "host") && (
+              <span className="nav-count">
+                {jobs.filter((job) => jobAssetKind(job) === "host").length}
+              </span>
+            )}
           </button>
         </nav>
         <div className="sidebar-divider" />
@@ -696,15 +706,15 @@ function Overview({
         </div>
         <div className="jobs-toolbar">
           <label className="source-scope-filter">
-            记录来源
+            来源
             <select
               aria-label="分析记录来源"
               value={sourceScope}
               onChange={(event) => setSourceScope(event.target.value)}
             >
-              <option value="work">实际输入</option>
-              <option value="demo">合成演示</option>
-              <option value="training">本地教学 / 实际采集</option>
+              <option value="work">手动输入</option>
+              <option value="demo">示例</option>
+              <option value="training">本地教学</option>
               <option value="all">全部来源</option>
             </select>
           </label>
@@ -965,8 +975,12 @@ function JobDetail({
         <div className="detail-actions">
           {result && job.status === "completed" && (
             <>
-              <LinkButton href={api.exportUrl(id, "json")}>JSON</LinkButton>
-              <LinkButton href={api.exportUrl(id, "html")}>报告</LinkButton>
+              <LinkButton href={api.exportUrl(id, "json")}>
+                导出 JSON
+              </LinkButton>
+              <LinkButton href={api.exportUrl(id, "html")}>
+                导出报告（HTML）
+              </LinkButton>
             </>
           )}
           {isActive(job) ? (

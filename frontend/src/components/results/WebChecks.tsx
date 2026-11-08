@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ArrowRight, ChevronDown, ShieldCheck } from "lucide-react";
 import type { Data } from "../../lib/types";
+import { severityLabelText } from "../../lib/display-labels";
 import {
   isRecord,
   readable,
@@ -143,7 +144,7 @@ export function WebChecks({
                     <small>{readable(asset.url || asset.host)}</small>
                   </div>
                   <span className="web-check-severity mono">
-                    {readable(check.severity)}
+                    {severityLabelText(readable(check.severity))}
                   </span>
                   <ChevronDown size={14} />
                 </summary>

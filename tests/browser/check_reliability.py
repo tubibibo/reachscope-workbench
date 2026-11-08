@@ -54,7 +54,7 @@ def main() -> int:
         page.route("**/api/assets/*/inspections", lambda route: response_loss(route, inspection_requests))
         try:
             page.goto(args.base_url + "/#/assets")
-            page.get_by_role("button", name="新建检查", exact=True).click()
+            page.get_by_role("button", name="新建检查", exact=True).first.click()
             page.locator(".asset-kind-picker button").nth(2).click()
             page.get_by_role("button", name="下一步", exact=True).click()
             page.get_by_label("选择检查方式").select_option("cloud-demo")

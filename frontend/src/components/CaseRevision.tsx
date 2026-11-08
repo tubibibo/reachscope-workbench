@@ -112,7 +112,7 @@ export function RevisionInput({
         aria-expanded={expanded}
         onClick={() => setExpanded(!expanded)}
       >
-        配置 / 应用有修订文件？ <Plus size={13} />
+        如何关联修订文件？（说明） <Plus size={13} />
       </button>
       {expanded && (
         <>
