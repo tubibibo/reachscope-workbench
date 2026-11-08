@@ -71,7 +71,7 @@ def run(base: str, output: Path, executable: Path | None) -> dict[str, Any]:
                 if request.method == "POST" and "/advisory" in request.url else None)
         try:
             page.goto(base + "/#/modules/host")
-            page.get_by_role("button", name="新建分析", exact=True).first.click()
+            page.get_by_role("button", name="新建检查", exact=True).first.click()
             page.locator(".asset-kind-picker button").nth(3).click()
             page.get_by_role("button", name="下一步", exact=True).click()
             page.get_by_label("选择检查方式").select_option("host-baseline")

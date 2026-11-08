@@ -32,7 +32,7 @@ def document() -> dict[str, Any]:
 
 
 def new_cloud(page: Page) -> None:
-    page.get_by_role("button", name="新建分析", exact=True).first.click()
+    page.get_by_role("button", name="新建检查", exact=True).first.click()
     page.locator(".asset-kind-picker button").nth(2).click()
     page.get_by_role("button", name="下一步", exact=True).click()
 

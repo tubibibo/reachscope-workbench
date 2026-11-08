@@ -49,7 +49,7 @@ def wait_complete(page: Page) -> None:
 def new_task(page: Page, name: str, module: str = "android", mode: str = "demo") -> None:
     global _pending_name
     _pending_name = name
-    page.get_by_role("button", name="新建分析", exact=True).first.click()
+    page.get_by_role("button", name="新建检查", exact=True).first.click()
     page.locator(".asset-kind-picker button").nth(1 if module == "web" else 0).click()
     page.get_by_role("button", name="下一步", exact=True).click()
     profile = "android-demo" if module == "android" else f"website-{mode}"
@@ -206,7 +206,7 @@ def main() -> int:
             page.locator(".sidebar nav").get_by_role("button", name="Web", exact=False).click()
             expect(page.locator(".overview-heading h1")).to_contain_text("摸清资产")
             page.screenshot(path=str(output / "mobile.png"), full_page=True)
-            page.get_by_role("button", name="新建分析", exact=True).first.click()
+            page.get_by_role("button", name="新建检查", exact=True).first.click()
             expect(page.get_by_role("dialog")).to_be_visible()
             assert no_overflow(page)
             page.keyboard.press("Escape")

@@ -246,7 +246,7 @@ function WorkspaceList({
           action={
             !search && (
               <button className="button" onClick={() => setCreating(true)}>
-                创建第一个工作区 <ArrowRight size={15} />
+                新建工作区 <ArrowRight size={15} />
               </button>
             )
           }
@@ -373,8 +373,8 @@ export function CreateWorkspace({
       >
         <header className="panel-heading">
           <div>
-            <span className="eyebrow">NEW WORKSPACE / 检查范围</span>
-            <h2 id="create-workspace-title">建立共同的工作范围</h2>
+            <span className="eyebrow">NEW WORKSPACE / 工作区</span>
+            <h2 id="create-workspace-title">建立共同的工作区</h2>
           </div>
           <button
             className="icon-button"

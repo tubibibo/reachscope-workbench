@@ -25,7 +25,7 @@ def baseline(*, hardened: bool = False, host_id: str = "host-ui-01") -> dict[str
 
 
 def prepare(page: Page, profile: str, name: str, raw: bytes, *, host_id: str = "host-ui-01") -> None:
-    page.get_by_role("button", name="新建分析", exact=True).first.click()
+    page.get_by_role("button", name="新建检查", exact=True).first.click()
     page.locator(".asset-kind-picker button").nth(3).click()
     page.get_by_role("button", name="下一步", exact=True).click()
     page.get_by_label("选择检查方式").select_option(profile)

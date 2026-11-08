@@ -374,7 +374,7 @@ export default function App() {
             >
               <Menu size={20} />
             </button>
-            <span>工作空间</span>
+            <span>工作区</span>
             <span className="breadcrumb-slash">/</span>
             <strong>
               {selectedId
@@ -404,7 +404,7 @@ export default function App() {
               onClick={() => startCheck()}
             >
               <Plus size={15} />
-              新建分析
+              新建检查
             </button>
           </div>
         </header>
@@ -562,7 +562,7 @@ function Overview({
         <div>
           <div className="eyebrow">
             {view === "all"
-              ? "OVERVIEW / 工作空间"
+              ? "OVERVIEW / 工作区"
               : `${view.toUpperCase()} / ANALYSIS MODULE`}
           </div>
           <h1>
@@ -633,7 +633,7 @@ function Overview({
           <small>
             {jobs.length < total
               ? "当前已载入的模块记录"
-              : "当前工作空间的模块记录"}
+              : "当前工作区的模块记录"}
           </small>
         </div>
         <div>
@@ -748,7 +748,7 @@ function Overview({
             }
             action={
               <button className="button button-primary" onClick={create}>
-                新建分析
+                新建检查
                 <ArrowRight size={15} />
               </button>
             }
@@ -828,7 +828,7 @@ function Overview({
         {!loading && total > 0 && (
           <div className="history-pagination">
             <span>
-              工作空间已载入 {jobs.length} / {total} 条 · 当前筛选{" "}
+              工作区已载入 {jobs.length} / {total} 条 · 当前筛选{" "}
               {selected.length} 条
               {jobs.length < total ? " · 统计与搜索仅覆盖已载入记录" : ""}
             </span>

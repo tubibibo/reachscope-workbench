@@ -188,7 +188,7 @@ export function HostCaseAction({ job }: { job: Job }) {
               disabled={busy}
               onClick={() => setCreatingScope(true)}
             >
-              建立包含此资产的工作范围 <Plus size={12} />
+              建立包含此资产的工作区 <Plus size={12} />
             </button>
             {workspaces.length < total && (
               <button
@@ -211,7 +211,7 @@ export function HostCaseAction({ job }: { job: Job }) {
               <label className="host-scope-confirm">
                 <input
                   type="checkbox"
-                  aria-label="确认主机整改工作范围"
+                  aria-label="确认主机整改工作区"
                   checked={confirmed}
                   disabled={busy}
                   onChange={(event) => setConfirmed(event.target.checked)}

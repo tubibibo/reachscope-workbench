@@ -76,7 +76,7 @@ def isolated_service(base_url: str | None, output: Path) -> Iterator[str]:
 
 
 def begin_sample(page: Page, sample: str, *, code: bool) -> dict[str, Any]:
-    page.get_by_role("button", name="新建分析", exact=True).first.click()
+    page.get_by_role("button", name="新建检查", exact=True).first.click()
     page.locator(".asset-kind-picker button").nth(0).click()
     page.get_by_role("button", name="下一步", exact=True).click()
     page.get_by_label("选择检查方式").select_option("android-demo")

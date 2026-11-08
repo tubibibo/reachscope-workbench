@@ -135,7 +135,7 @@ export function GettingStarted({
             <span className="eyebrow">02 / EVIDENCE TO ACTION</span>
             <h2 id="guide-workflow-title">每一步都有去处</h2>
           </div>
-          <span className="guide-local-note">记录保存在本机工作空间</span>
+          <span className="guide-local-note">记录保存在本机工作区</span>
         </div>
         <ol>
           <li>

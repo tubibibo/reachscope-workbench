@@ -119,7 +119,7 @@ export function Assets({
         </div>
         <button className="button button-primary" onClick={() => create()}>
           <Plus size={15} />
-          添加并检查
+          新建检查
         </button>
       </section>
       <div className="asset-start-hint">
