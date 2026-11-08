@@ -50,9 +50,10 @@ It is not a community project and has no roadmap or response-time commitment.
 - **Bug reports with a reproducible case**: welcome. A minimal input, the expected
   result, the actual result and your environment are enough to start.
 - **Documentation fixes, typos, ports**: welcome as pull requests.
-- **New features, new modules, new dependencies**: please open an issue first.
-  Most will be declined — this tool deliberately stays small, local and
-  dependency-light. A rejected feature is not a judgement on your work.
+- **New features, new modules, new dependencies**: suggestions are welcome —
+  please open an issue describing the workflow problem first. This tool
+  deliberately stays small, local and dependency-light, so not every request
+  will fit; discussing the real use case is the best way to start.
 - **Security reports**: do not open a public issue. Use the private reporting
   channel described in `SECURITY.md`.
 
