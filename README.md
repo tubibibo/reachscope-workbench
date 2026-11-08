@@ -42,6 +42,22 @@ observation it is meant to replace.
 - **A teacher.** The same lab runs offline and returns the same result every
   time, so a class sees the same cause and the same effect.
 
+## Scope and limits
+
+- **Not a vulnerability scanner.** Leads, imported findings and rule
+  suggestions are never presented as confirmed vulnerabilities.
+- **Not an attack tool.** No crawling, brute forcing, exploit or APK
+  execution. Web probing sends a bounded GET to the URLs you list; private
+  targets stay disabled unless you opt in.
+- **Not a hosted service.** Loopback only, one local operator, no accounts or
+  isolation. Do not expose the port through a public reverse proxy.
+- **No measured detection rate.** The rule tables are a reading aid for a
+  human, not steps the application performs. Nothing here is validated against
+  a realistic corpus, and a missing observation is not evidence that an asset
+  is safe.
+- **It does not read your cloud account.** The cloud module parses offline
+  JSON; a static configuration proves nothing about deployed reachability.
+
 ## Quick start
 
 **Windows** — from the repository root:
