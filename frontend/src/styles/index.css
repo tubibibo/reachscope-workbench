@@ -16,8 +16,9 @@
   --paper: #f5f3ed;
   --surface: #fcfaf5;
   --ink: #292d28;
-  --muted: #7a7e72;
+  --muted: #62685c;
   --rule: #dcded3;
+  --line: #dcded3;
   --accent: #ce5738;
   --green: #607250;
   --mono: "Cascadia Code", Consolas, monospace;
@@ -42,6 +43,12 @@ button {
   color: inherit;
 }
 button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+input:disabled,
+select:disabled,
+textarea:disabled {
   cursor: default;
   opacity: 0.45;
 }
@@ -576,7 +583,6 @@ button {
 .search-field input {
   border: 0;
   background: transparent;
-  outline: 0;
   width: 180px;
   max-width: 100%;
   min-width: 0;
@@ -585,7 +591,7 @@ button {
   color: var(--ink);
 }
 .search-field input::placeholder {
-  color: #9aa38d;
+  color: #7f8878;
 }
 .search-field button {
   border: 0;
@@ -680,7 +686,7 @@ tbody tr:hover {
   font-size: 9px;
   white-space: nowrap;
   padding: 5px 0;
-  color: #88927a;
+  color: #6d7568;
 }
 .status-tag i {
   width: 5px;
@@ -791,7 +797,7 @@ tbody tr:hover {
   margin: 17px 0 10px;
 }
 .empty-state p {
-  color: #929d84;
+  color: #6d7568;
   font-size: 10px;
   line-height: 1.9;
   max-width: 410px;
@@ -875,39 +881,6 @@ tbody tr:hover {
   font-weight: 400;
   margin-left: 20px;
 }
-.module-picker {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 28px;
-}
-.module-picker button {
-  border: 1px solid var(--rule);
-  background: none;
-  padding: 18px;
-  display: flex;
-  gap: 13px;
-  align-items: center;
-  text-align: left;
-}
-.module-picker button.selected {
-  background: #e8eddf;
-  border-color: #aebaa0;
-}
-.module-picker button > svg {
-  color: #71815d;
-}
-.module-picker strong {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-}
-.module-picker small {
-  display: block;
-  font-size: 9px;
-  color: #889777;
-  margin-top: 7px;
-}
 .field {
   display: flex;
   flex-direction: column;
@@ -946,40 +919,20 @@ tbody tr:hover {
 }
 .field input::placeholder,
 .field textarea::placeholder {
-  color: #a0aa92;
+  color: #8f9785;
 }
 .field-hint {
   font-size: 10px;
   line-height: 1.9;
-  color: #8e9a7f;
+  color: #6d7c5d;
   display: block;
 }
 .raw-code {
   font-family: var(--mono);
-  font-size: 10px;
-  color: #8e9a7f;
+  font-size: 0.9em;
+  color: #6d7c5d;
   margin-left: 6px;
   text-transform: none;
-}
-.segmented {
-  display: flex;
-  border: 1px solid #d5dbcc;
-  padding: 4px;
-  background: #eaeede;
-  gap: 3px;
-}
-.segmented button {
-  flex: 1;
-  border: 0;
-  background: none;
-  font-size: 10px;
-  padding: 10px 5px;
-  color: #8a967a;
-}
-.segmented button[aria-pressed="true"] {
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: 0 1px 2px #27322208;
 }
 .checkbox-field {
   display: flex;
@@ -1066,11 +1019,6 @@ tbody tr:hover {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-}
-.form-footer > span {
-  font-size: 9px;
-  color: #98a488;
-  line-height: 1.8;
 }
 .form-footer .button {
   font-size: 11px;
@@ -1379,22 +1327,6 @@ tbody tr:hover {
   .panel-heading h2 {
     font-size: 23px;
   }
-  .module-picker {
-    gap: 9px;
-  }
-  .module-picker button {
-    padding: 15px 12px;
-    gap: 9px;
-  }
-  .module-picker small {
-    font-size: 8px;
-  }
-  .module-picker strong {
-    font-size: 12px;
-  }
-  .module-picker svg {
-    width: 17px;
-  }
   .field {
     margin-bottom: 21px;
   }
@@ -1411,10 +1343,6 @@ tbody tr:hover {
   }
   .form-footer {
     align-items: flex-end;
-  }
-  .form-footer > span {
-    font-size: 8px;
-    max-width: 170px;
   }
   .form-footer .button {
     padding: 11px 14px;

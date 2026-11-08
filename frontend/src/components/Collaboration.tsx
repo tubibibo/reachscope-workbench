@@ -525,15 +525,15 @@ export function CreateWorkspace({
           <footer className="form-footer">
             <div className="form-footer-notes">
               <small>使用已保存的资产，不启动任何新探测。</small>
-              {missing.length > 0 && (
-                <small
-                  className="field-hint"
-                  role="status"
-                  id="workspace-submit-missing"
-                >
-                  还需完成：{missing.join("、")}
-                </small>
-              )}
+              <small
+                className="field-hint"
+                role="status"
+                id="workspace-submit-missing"
+              >
+                {missing.length > 0
+                  ? `还需完成：${missing.join("、")}`
+                  : "信息完整，可以建立工作区。"}
+              </small>
             </div>
             <button
               className="button button-primary"
