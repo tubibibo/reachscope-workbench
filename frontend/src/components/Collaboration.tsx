@@ -298,6 +298,10 @@ export function CreateWorkspace({
     [name, setName] = useState(""),
     [objective, setObjective] = useState(""),
     [authorization, setAuthorization] = useState("");
+  const missing: string[] = [];
+  if (!name.trim()) missing.push("工作区名称");
+  if (!authorization.trim()) missing.push("授权与范围说明");
+  if (!selected.length) missing.push("至少一个资产");
   const busyRef = useRef(false),
     request = useRef<{ signature: string; key: string } | null>(null);
   const ref = useDialog(true, () => {
@@ -392,7 +396,9 @@ export function CreateWorkspace({
         >
           <div className="workspace-form-content">
             <label className="field">
-              <span className="field-label">工作区名称</span>
+              <span className="field-label">
+                工作区名称 <small>必填</small>
+              </span>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
@@ -403,7 +409,9 @@ export function CreateWorkspace({
               />
             </label>
             <label className="field">
-              <span className="field-label">本次目标</span>
+              <span className="field-label">
+                本次目标 <small>可选</small>
+              </span>
               <textarea
                 value={objective}
                 onChange={(event) => setObjective(event.target.value)}
@@ -414,7 +422,9 @@ export function CreateWorkspace({
               />
             </label>
             <label className="field">
-              <span className="field-label">授权与范围说明</span>
+              <span className="field-label">
+                授权与范围说明 <small>必填</small>
+              </span>
               <textarea
                 value={authorization}
                 onChange={(event) => setAuthorization(event.target.value)}
@@ -422,12 +432,15 @@ export function CreateWorkspace({
                 rows={3}
                 required
                 disabled={busy}
-                placeholder="记录资产归属、授权依据与检查边界。此处是工作记录，不是外部授权证明。"
+                placeholder="例如：自有站点，内网授权，仅检查响应头"
               />
+              <small className="field-hint">
+                记录资产归属、授权依据与检查边界。此处是工作记录，不是外部授权证明。
+              </small>
             </label>
             <div className="field">
               <span className="field-label">
-                范围内资产 <small>已选 {selected.length} / 100</small>
+                范围内资产 <small>必填 · 已选 {selected.length} / 100</small>
               </span>
               {initialAssetId && (
                 <p className="scope-note">
@@ -503,16 +516,25 @@ export function CreateWorkspace({
             <Failure value={error} />
           </div>
           <footer className="form-footer">
-            <small>使用已保存的资产，不启动任何新探测。</small>
+            <div className="form-footer-notes">
+              <small>使用已保存的资产，不启动任何新探测。</small>
+              {missing.length > 0 && (
+                <small
+                  className="field-hint"
+                  role="status"
+                  id="workspace-submit-missing"
+                >
+                  还需完成：{missing.join("、")}
+                </small>
+              )}
+            </div>
             <button
               className="button button-primary"
               type="submit"
-              disabled={
-                busy ||
-                !name.trim() ||
-                !authorization.trim() ||
-                !selected.length
+              aria-describedby={
+                missing.length > 0 ? "workspace-submit-missing" : undefined
               }
+              disabled={busy || missing.length > 0}
             >
               {busy ? "正在保存…" : "建立工作区"}
               <ArrowRight size={15} />
