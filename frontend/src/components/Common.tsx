@@ -50,6 +50,10 @@ export function Loading({ label = "正在读取…" }: { label?: string }) {
     </div>
   );
 }
+export function RawCode({ value, text }: { value: string; text: string }) {
+  if (value === text) return null;
+  return <code className="raw-code">{value}</code>;
+}
 export function Empty({
   title,
   detail,

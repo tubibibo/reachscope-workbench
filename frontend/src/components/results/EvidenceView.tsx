@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import type { ModuleResult } from "../../lib/types";
-import { Empty, KeyValues, SearchField } from "../Common";
+import { evidenceKindText } from "../../lib/display-labels";
+import { Empty, KeyValues, RawCode, SearchField } from "../Common";
 import { JsonData } from "./JsonData";
 
 export function EvidenceView({
@@ -48,7 +49,12 @@ export function EvidenceView({
               <div>
                 <strong>{item.title}</strong>
                 <small>
-                  {item.kind} / {item.source}
+                  {evidenceKindText(item.kind)}
+                  <RawCode
+                    value={item.kind}
+                    text={evidenceKindText(item.kind)}
+                  />{" "}
+                  / {item.source}
                 </small>
               </div>
               <ChevronRight size={14} />
@@ -59,7 +65,13 @@ export function EvidenceView({
         <div className="evidence-inspector">
           {selected ? (
             <>
-              <span className="eyebrow">{selected.kind}</span>
+              <span className="eyebrow">
+                {evidenceKindText(selected.kind)}
+                <RawCode
+                  value={selected.kind}
+                  text={evidenceKindText(selected.kind)}
+                />
+              </span>
               <h3>{selected.title}</h3>
               <div className="evidence-id mono">{selected.id}</div>
               <KeyValues

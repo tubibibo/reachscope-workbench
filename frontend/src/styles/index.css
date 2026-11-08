@@ -954,6 +954,13 @@ tbody tr:hover {
   color: #8e9a7f;
   display: block;
 }
+.raw-code {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: #8e9a7f;
+  margin-left: 6px;
+  text-transform: none;
+}
 .segmented {
   display: flex;
   border: 1px solid #d5dbcc;

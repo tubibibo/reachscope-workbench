@@ -138,15 +138,15 @@ export function Assets({
       </div>
       <div className="asset-library-toolbar">
         <label className="source-scope-filter">
-          记录来源
+          来源
           <select
-            aria-label="资产记录来源"
+            aria-label="资产来源"
             value={sourceScope}
             onChange={(event) => setSourceScope(event.target.value)}
           >
-            <option value="work">实际输入</option>
-            <option value="demo">合成演示</option>
-            <option value="training">本地教学 / 实际采集</option>
+            <option value="work">手动输入</option>
+            <option value="demo">示例</option>
+            <option value="training">本地教学</option>
             <option value="all">全部来源</option>
           </select>
         </label>
@@ -246,7 +246,9 @@ export function Assets({
       )}
       <div className="history-pagination">
         <span>
-          已载入 {assets.length} / {total} 个资产 · 筛选与搜索覆盖已载入记录
+          {total === 0
+            ? "共 0 个资产"
+            : `已载入 ${assets.length} / ${total} 个资产 · 筛选与搜索覆盖已载入记录`}
         </span>
         {assets.length < total && (
           <button

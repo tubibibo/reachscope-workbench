@@ -121,7 +121,7 @@ def main() -> int:
             checks.append({"name": "evidence, event journal and reproducible input", "passed": True})
 
             with page.expect_download() as download:
-                page.get_by_role("link", name="JSON", exact=True).click()
+                page.get_by_role("link", name="导出 JSON", exact=True).click()
             download.value.save_as(output / "android-export.json")
             exported = json.loads((output / "android-export.json").read_text(encoding="utf-8"))
             assert "android" in json.dumps(exported)

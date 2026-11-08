@@ -152,7 +152,7 @@ def main() -> int:
                 page.get_by_role("button", name="分析总览", exact=False).click()
                 expect(page.get_by_label("分析记录来源", exact=True)).to_have_value("work")
                 page.goto(args.base_url + "/#/assets")
-                expect(page.get_by_label("资产记录来源", exact=True)).to_have_value("work")
+                expect(page.get_by_label("资产来源", exact=True)).to_have_value("work")
                 checks.append("dashboard and asset library default to actual inputs while keeping demos in a separate source filter")
                 if cloud_job:
                     page.goto(args.base_url + f"/#/jobs/{cloud_job['id']}")

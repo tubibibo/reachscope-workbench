@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { ArrowRight, ChevronDown, ShieldAlert } from "lucide-react";
 import type { Observation } from "../../lib/types";
+import {
+  confidenceLabelText,
+  observationCategoryText,
+  severityLabelText,
+} from "../../lib/display-labels";
+import { RawCode } from "../Common";
 
 export function Observations({
   observations,
@@ -31,7 +37,7 @@ export function Observations({
           {Array.from(new Set(observations.map((item) => item.severity))).map(
             (item) => (
               <option key={item} value={item}>
-                {item}
+                {severityLabelText(item)}
               </option>
             ),
           )}
@@ -50,9 +56,19 @@ export function Observations({
               <summary>
                 <span className={`severity-dot severity-${item.severity}`} />
                 <strong>{item.title}</strong>
-                <span className="observation-category">{item.category}</span>
+                <span className="observation-category">
+                  {observationCategoryText(item.category)}
+                  <RawCode
+                    value={item.category}
+                    text={observationCategoryText(item.category)}
+                  />
+                </span>
                 <span className={`severity-label severity-${item.severity}`}>
-                  {item.severity}
+                  {severityLabelText(item.severity)}
+                  <RawCode
+                    value={item.severity}
+                    text={severityLabelText(item.severity)}
+                  />
                 </span>
                 <ChevronDown size={14} />
               </summary>
@@ -65,7 +81,13 @@ export function Observations({
                   </div>
                 )}
                 <div className="observation-meta">
-                  <span>依据：{item.confidence}</span>
+                  <span>
+                    依据：{confidenceLabelText(item.confidence)}
+                    <RawCode
+                      value={item.confidence}
+                      text={confidenceLabelText(item.confidence)}
+                    />
+                  </span>
                   {item.evidence_ids.map((id) => (
                     <button
                       type="button"

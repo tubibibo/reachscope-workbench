@@ -15,6 +15,12 @@ import type {
   ReviewCase,
 } from "../lib/types";
 import { dateLabel, isRecord } from "../lib/types";
+import {
+  confidenceLabelText,
+  evidenceKindText,
+  severityLabelText,
+} from "../lib/display-labels";
+import { RawCode } from "./Common";
 import { jobConfig } from "../lib/job-config";
 import {
   canCloseCase,
@@ -350,12 +356,21 @@ export function CaseDetail({
       <div className="case-detail-heading">
         <div>
           <span className="eyebrow">
-            {view === "red" ? "EVIDENCE REVIEW" : "REMEDIATION & RETEST"} /{" "}
+            {view === "red" ? "EVIDENCE REVIEW" : "整改与复测"} /{" "}
             {item.id.slice(0, 8)}
           </span>
           <h2>{item.title}</h2>
           <p>
-            {item.asset_name} · {item.severity} / {item.confidence}
+            {item.asset_name} · {severityLabelText(item.severity)}
+            <RawCode
+              value={item.severity}
+              text={severityLabelText(item.severity)}
+            />{" "}
+            / {confidenceLabelText(item.confidence)}
+            <RawCode
+              value={item.confidence}
+              text={confidenceLabelText(item.confidence)}
+            />
           </p>
         </div>
         <span className={`case-state case-${item.status}`}>
@@ -406,7 +421,13 @@ export function CaseDetail({
                 <details className="case-evidence" key={evidence.id}>
                   <summary>
                     {evidence.title}
-                    <span>{evidence.kind}</span>
+                    <span>
+                      {evidenceKindText(evidence.kind)}
+                      <RawCode
+                        value={evidence.kind}
+                        text={evidenceKindText(evidence.kind)}
+                      />
+                    </span>
                   </summary>
                   <small>{evidence.source}</small>
                   <code>{evidence.id}</code>

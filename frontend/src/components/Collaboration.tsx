@@ -253,7 +253,9 @@ function WorkspaceList({
         />
       )}
       <p className="load-scope">
-        已载入 {items.length} / {total} 个工作区
+        {total === 0
+          ? "共 0 个工作区"
+          : `已载入 ${items.length} / ${total} 个工作区`}
       </p>
       {items.length < total && (
         <button
@@ -440,7 +442,8 @@ export function CreateWorkspace({
             </label>
             <div className="field">
               <span className="field-label">
-                范围内资产 <small>必填 · 已选 {selected.length} / 100</small>
+                范围内资产{" "}
+                <small>必填 · 已选 {selected.length} 个（上限 100）</small>
               </span>
               {initialAssetId && (
                 <p className="scope-note">
@@ -500,7 +503,9 @@ export function CreateWorkspace({
                 </div>
               )}
               <small className="load-scope">
-                已载入 {assets.length}/{total} 个资产。范围在创建后固定。
+                {total === 0
+                  ? "暂无已保存资产。"
+                  : `已载入 ${assets.length}/${total} 个资产。范围在创建后固定。`}
               </small>
               {assets.length < total && (
                 <button
@@ -647,14 +652,15 @@ function Workspace({
             download
           >
             <FileDown size={14} />
-            JSON
+            导出 JSON
           </a>
           <a
             className="button"
             href={api.engagementExportUrl(id, "html")}
             download
           >
-            工作报告 ↗
+            <FileDown size={14} />
+            导出报告（HTML）
           </a>
         </div>
       </section>

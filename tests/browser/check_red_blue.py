@@ -163,7 +163,7 @@ def main() -> int:
                 checks.append("editing a resolved record retains its decision without submitting another closure transition")
 
                 with page.expect_download() as download:
-                    page.get_by_role("link", name="工作报告", exact=False).click()
+                    page.get_by_role("link", name="导出报告", exact=False).click()
                 download.value.save_as(output / "workspace-report.html")
                 assert (output / "workspace-report.html").read_text(encoding="utf-8").find("CSP") >= 0
                 page.reload()
