@@ -47,6 +47,31 @@ const icons = {
   cloud: Cloud,
   host: Server,
 };
+// Mirrors the private-address rules enforced by modules/web/scope.py; the
+// backend stays authoritative — this is a discoverability hint only.
+function privateTargets(urls: string[]): string[] {
+  return urls.filter((url) => {
+    try {
+      const host = new URL(url).hostname.toLowerCase();
+      if (host === "localhost" || host.endsWith(".localhost")) return true;
+      if (host === "::1") return true;
+      const match = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+      if (!match) return false;
+      const first = Number(match[1]);
+      const second = Number(match[2]);
+      return (
+        first === 127 ||
+        first === 10 ||
+        first === 0 ||
+        (first === 192 && second === 168) ||
+        (first === 172 && second >= 16 && second <= 31) ||
+        (first === 169 && second === 254)
+      );
+    } catch {
+      return false;
+    }
+  });
+}
 function dependencies(profile: AnalysisProfile, selected: string[]): string[] {
   const values = new Set([
     ...selected,
@@ -122,6 +147,14 @@ export function NewJob({
   const profiles =
     catalog?.profiles.filter((item) => item.asset_kind === kind) || [];
   const profile = catalog?.profiles.find((item) => item.id === profileId);
+  const websiteTargets =
+    profile?.input === "urls"
+      ? targets
+          .split(/\r?\n/)
+          .map((item) => item.trim())
+          .filter(Boolean)
+      : [];
+  const blockedTargets = allowPrivate ? [] : privateTargets(websiteTargets);
   const chosen = profile ? dependencies(profile, selected) : [];
   const chosenSignature = JSON.stringify(chosen);
   useEffect(() => {
@@ -732,6 +765,12 @@ export function NewJob({
                                 <small>默认只允许公网地址。</small>
                               </span>
                             </label>
+                            {blockedTargets.length > 0 && (
+                              <p className="wizard-warning" role="status">
+                                检测到 {blockedTargets.length}{" "}
+                                个本机/内网地址：不勾选「包含我的本机或内网地址」时，这些目标将被拒绝执行。
+                              </p>
+                            )}
                           </>
                         )}
                         {(profile?.input === "apk" ||
@@ -1019,6 +1058,14 @@ export function NewJob({
                           <LoaderCircle size={14} className="spin" />
                         )}
                       </div>
+                      {blockedTargets.length > 0 && (
+                        <p className="wizard-warning" role="status">
+                          将拒绝执行 {blockedTargets.length}{" "}
+                          个本机/内网目标（未勾选「包含我的本机或内网地址」）：
+                          {blockedTargets.slice(0, 3).join("、")}
+                          {blockedTargets.length > 3 ? " 等" : ""}。
+                        </p>
+                      )}
                       {preflight ? (
                         <>
                           <p>

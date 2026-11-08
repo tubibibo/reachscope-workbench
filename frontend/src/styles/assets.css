@@ -587,3 +587,13 @@
   margin-top: 5px;
   font-size: 10px;
 }
+
+.wizard-warning {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #e0c3ad;
+  background: #f8ede3;
+  color: #96492f;
+  font-size: 10px;
+  line-height: 1.7;
+}

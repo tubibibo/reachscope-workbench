@@ -165,6 +165,19 @@ export function WebResult({
               id="result-section-assets"
               tabIndex={-1}
             >
+              {assets.length > 0 &&
+                assets.every((asset) =>
+                  String(
+                    isRecord(asset.error)
+                      ? textValue(asset.error.message)
+                      : readable(asset.error),
+                  ).includes("outside the selected network scope"),
+                ) && (
+                  <p className="scope-note" role="alert">
+                    本次目标因内网限制未采集：目标属于本机/内网地址。请在“新建检查”第
+                    2 步勾选「包含我的本机或内网地址」后重新分析。
+                  </p>
+                )}
               <div className="result-section-heading">
                 <div>
                   <span className="eyebrow">ASSET INVENTORY</span>
