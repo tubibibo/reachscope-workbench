@@ -28,7 +28,13 @@ import {
 import { api, errorRequestId, errorText } from "./lib/api";
 import { useJob, useJobs } from "./hooks/useJobs";
 import type { Asset, Job, ModuleId, ModuleSpec } from "./lib/types";
-import { dateLabel, isActive, moduleLabel, statusLabelText } from "./lib/types";
+import {
+  dateLabel,
+  isActive,
+  isRecord,
+  moduleLabel,
+  statusLabelText,
+} from "./lib/types";
 import {
   Empty,
   ErrorBox,
@@ -938,6 +944,14 @@ function JobDetail({
       </>
     );
   const result = job.result;
+  // A completed run that produced zero responses while recording request
+  // failures did not "succeed" in any user-facing sense — label it as such.
+  const summary = result && isRecord(result.summary) ? result.summary : null;
+  const zeroData =
+    job.status === "completed" &&
+    summary !== null &&
+    Number(summary.online ?? 0) === 0 &&
+    Number(summary.errors ?? 0) > 0;
   const tabs: { id: DetailTab; label: string; count?: number }[] = [
     { id: "result", label: "分析结果" },
     { id: "evidence", label: "证据索引", count: result?.evidence.length },
@@ -962,12 +976,32 @@ function JobDetail({
           <SourceBadge source={sourceOfJob(job)} />
           <p className="inspection-source-note">{sourceOfJob(job).detail}</p>
           <div className="detail-meta">
-            <StatusTag status={job.status} />
+            {zeroData ? (
+              <span className="status-tag status-failed">
+                采集失败 · 未取得数据
+              </span>
+            ) : (
+              <StatusTag status={job.status} />
+            )}
             <span className="mono">{job.id}</span>
             <span>{dateLabel(job.created_at)}</span>
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="刷新任务详情"
+              onClick={() => refresh()}
+            >
+              <RefreshCw size={13} />
+            </button>
+            <span className="mono">最后更新 {dateLabel(job.updated_at)}</span>
             {job.asset_id && (
               <a className="text-button" href={`#/assets/${job.asset_id}`}>
                 查看所属资产 <ArrowUpRight size={12} />
+              </a>
+            )}
+            {sourceOfJob(job).kind === "training" && (
+              <a className="text-button" href="#/lab">
+                返回本地教学
               </a>
             )}
           </div>
@@ -1191,18 +1225,29 @@ function JobDetail({
             </div>
             <KeyValues
               data={{
-                module: job.module,
-                asset:
+                模块: moduleLabel[job.module],
+                资产:
                   job.asset_snapshot?.name ||
                   (job.asset_id ? job.asset_id : "历史记录未关联资产"),
-                status: job.status,
-                created_at: job.created_at,
-                updated_at: job.updated_at,
+                状态: statusLabelText(job.status),
+                创建时间: dateLabel(job.created_at),
+                更新时间: dateLabel(job.updated_at),
               }}
             />
-            <pre className="data-block">
-              {JSON.stringify(job.config, null, 2)}
-            </pre>
+            {job.module === "web" &&
+              isRecord(job.config) &&
+              job.config.allow_private === false && (
+                <p className="field-hint">
+                  是否允许本机/内网地址：否。如果目标就在本机或内网，请在“新建检查”第
+                  2 步勾选「包含我的本机或内网地址」后重新分析。
+                </p>
+              )}
+            <details className="input-raw">
+              <summary>原始输入（调试用）</summary>
+              <pre className="data-block">
+                {JSON.stringify(job.config, null, 2)}
+              </pre>
+            </details>
             <p className="scope-note">
               重试会使用相同输入创建新的任务，原始分析记录会保留。
             </p>

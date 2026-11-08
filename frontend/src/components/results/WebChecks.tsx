@@ -156,7 +156,7 @@ export function WebChecks({
                     </p>
                   )}
                   <details className="raw-record">
-                    <summary>查看检查依据</summary>
+                    <summary>展开检查依据</summary>
                     <JsonData
                       data={
                         isRecord(check.evidence)

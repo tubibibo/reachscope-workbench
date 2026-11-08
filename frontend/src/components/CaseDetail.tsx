@@ -78,7 +78,8 @@ export function CaseDetail({
     [eventsError, setEventsError] = useState<unknown>(null);
   const busyRef = useRef(false),
     request = useRef<{ signature: string; key: string } | null>(null),
-    eventRequest = useRef<AbortController | null>(null);
+    eventRequest = useRef<AbortController | null>(null),
+    syncedCase = useRef<string | null>(null);
   const [revisionRequest, setRevisionRequest] = useState(0);
   useEffect(() => {
     eventRequest.current?.abort();
@@ -130,10 +131,15 @@ export function CaseDetail({
           if (value.engagement_id !== engagementId)
             throw new Error("记录不属于当前工作区。");
           setItem(value);
-          setStatus(value.status);
-          setOwner(value.owner);
-          setDue(value.due_date);
-          setNote("");
+          // Only seed the form on first load of this case; refetches
+          // (revision bumps from 刷新历史/发起复测) must not wipe in-progress notes.
+          if (syncedCase.current !== value.id) {
+            setStatus(value.status);
+            setOwner(value.owner);
+            setDue(value.due_date);
+            setNote("");
+            syncedCase.current = value.id;
+          }
         }
       })
       .catch((failure) => {
@@ -234,7 +240,11 @@ export function CaseDetail({
     ) {
       setError(
         new Error(
-          "关闭前请选择同一资产的可比复测，并确认本次未再观察到该条件。",
+          !retestId
+            ? "关闭前请先在「使用后续检查复测」中选择同一资产的复测检查。"
+            : retest?.outcome === "still_observed"
+              ? "所选复测仍观察到该条件，不能作为关闭依据；修复需要「范围内未再观察到该条件」的复测结果。"
+              : "所选复测不能作为可比复测，无法作为关闭依据；请重新发起复测，确认范围内未再观察到该条件。",
         ),
       );
       return;
