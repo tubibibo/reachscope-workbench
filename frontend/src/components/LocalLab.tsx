@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
+  CircleStop,
   FlaskConical,
   Play,
   RefreshCw,
-  Square,
 } from "lucide-react";
 import { api, errorRequestId, errorText } from "../lib/api";
 import { labApi } from "../lib/local-lab";
@@ -395,7 +395,7 @@ export function LocalLab({
                   })
                 }
               >
-                <Square size={12} />
+                <CircleStop size={12} />
                 停止教学站点
               </button>
             </div>

@@ -71,6 +71,21 @@ export function WebResult({
   useEffect(() => {
     setShown(50);
   }, [search, assetFilter]);
+  useEffect(() => {
+    const goto = (event: Event) => {
+      const target = (event as CustomEvent<string>).detail;
+      if (target === "result-section-checks") setPanel("checks");
+      else if (
+        target === "result-section-assets" ||
+        target === "result-section-observations" ||
+        target === "result-section-paths"
+      ) {
+        setPanel("assets");
+      }
+    };
+    window.addEventListener("reachscope:goto-section", goto);
+    return () => window.removeEventListener("reachscope:goto-section", goto);
+  }, []);
   return (
     <>
       <div className="web-workspace-nav">
@@ -145,7 +160,11 @@ export function WebResult({
           ))}
         {panel === "assets" && (
           <>
-            <section className="result-section">
+            <section
+              className="result-section"
+              id="result-section-assets"
+              tabIndex={-1}
+            >
               <div className="result-section-heading">
                 <div>
                   <span className="eyebrow">ASSET INVENTORY</span>
@@ -403,7 +422,7 @@ export function WebResult({
 function CandidatePaths({ paths }: { paths: Data[] }) {
   const [limit, setLimit] = useState(10);
   return (
-    <section className="result-section">
+    <section className="result-section" id="result-section-paths" tabIndex={-1}>
       <div className="result-section-heading">
         <div>
           <span className="eyebrow">INVESTIGATION HYPOTHESES</span>

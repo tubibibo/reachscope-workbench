@@ -20,7 +20,11 @@ export function Observations({
     (item) => severity === "all" || item.severity === severity,
   );
   return (
-    <section className="result-section">
+    <section
+      className="result-section"
+      id="result-section-observations"
+      tabIndex={-1}
+    >
       <div className="result-section-heading">
         <div>
           <span className="eyebrow">OBSERVATIONS</span>

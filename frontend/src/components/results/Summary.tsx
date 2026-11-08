@@ -138,7 +138,40 @@ const summaryLabels: Record<string, string> = {
   unknown_checks: "信息不足",
   unsupported_resources: "未覆盖资源",
 };
+// Stat cards only navigate to blocks that actually exist in the same tab;
+// keys without a matching block stay non-interactive (no fake jumps).
+const statTargets: Record<string, Record<string, string>> = {
+  web: {
+    assets: "result-section-assets",
+    checks: "result-section-checks",
+    review_checks: "result-section-checks",
+    paths: "result-section-paths",
+    observations: "result-section-observations",
+  },
+  android: {
+    observations: "result-section-observations",
+  },
+};
+
+function gotoSection(id: string) {
+  // WebResult listens for this to switch its internal panel first
+  // (e.g. 配置检查 lives behind the checks panel); never touch location.hash —
+  // the hash is this app's router.
+  window.dispatchEvent(
+    new CustomEvent("reachscope:goto-section", { detail: id }),
+  );
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const section = document.getElementById(id);
+      if (!section) return;
+      section.scrollIntoView({ block: "start" });
+      section.focus({ preventScroll: true });
+    });
+  });
+}
+
 export function ResultSummary({ result }: { result: ModuleResult }) {
+  const targets = statTargets[result.module];
   return (
     <div className="result-stats">
       {Object.entries(result.summary)
@@ -161,12 +194,29 @@ export function ResultSummary({ result }: { result: ModuleResult }) {
           );
         })
         .slice(0, 8)
-        .map(([key, value]) => (
-          <div key={key}>
-            <span>{summaryLabels[key] || key}</span>
-            <strong>{readable(value)}</strong>
-          </div>
-        ))}
+        .map(([key, value]) => {
+          const label = summaryLabels[key] || key;
+          const target = targets?.[key];
+          const body = (
+            <>
+              <span>{label}</span>
+              <strong>{readable(value)}</strong>
+            </>
+          );
+          return target ? (
+            <button
+              key={key}
+              type="button"
+              className="result-stat"
+              aria-label={`跳转到${label}`}
+              onClick={() => gotoSection(target)}
+            >
+              {body}
+            </button>
+          ) : (
+            <div key={key}>{body}</div>
+          );
+        })}
     </div>
   );
 }

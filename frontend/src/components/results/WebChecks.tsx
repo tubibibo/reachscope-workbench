@@ -41,7 +41,11 @@ export function WebChecks({
       (assetId === "all" || textValue(asset.id) === assetId),
   );
   return (
-    <section className="result-section web-checks">
+    <section
+      className="result-section web-checks"
+      id="result-section-checks"
+      tabIndex={-1}
+    >
       <div className="result-section-heading">
         <div>
           <span className="eyebrow">RESPONSE CONFIGURATION</span>
