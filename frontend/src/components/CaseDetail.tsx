@@ -19,6 +19,7 @@ import {
   confidenceLabelText,
   evidenceKindText,
   severityLabelText,
+  zeroOr,
 } from "../lib/display-labels";
 import { RawCode } from "./Common";
 import { jobConfig } from "../lib/job-config";
@@ -605,7 +606,11 @@ export function CaseDetail({
               </select>
             </label>
             <small className="load-scope">
-              已载入 {jobs.length}/{jobTotal} 条历史。
+              {zeroOr(
+                jobTotal,
+                "暂无历史。",
+                `已载入 ${jobs.length}/${jobTotal} 条历史。`,
+              )}
             </small>
             {jobs.length < jobTotal && (
               <button

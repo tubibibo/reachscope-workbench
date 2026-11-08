@@ -10,7 +10,11 @@ import {
   X,
 } from "lucide-react";
 import { api } from "../lib/api";
-import { confidenceLabelText, severityLabelText } from "../lib/display-labels";
+import {
+  confidenceLabelText,
+  severityLabelText,
+  zeroOr,
+} from "../lib/display-labels";
 import { RawCode } from "./Common";
 import type {
   Asset,
@@ -826,7 +830,11 @@ function Workspace({
             />
           )}
           <p className="load-scope">
-            已载入 {cases.length}/{total} 条记录；筛选作用于已载入记录。
+            {zeroOr(
+              total,
+              "共 0 条记录。",
+              `已载入 ${cases.length}/${total} 条记录；筛选作用于已载入记录。`,
+            )}
           </p>
           {cases.length < total && (
             <button
@@ -1026,7 +1034,11 @@ function AddCandidate({
             </select>
           </label>
           <small className="load-scope">
-            已载入 {jobs.length}/{total} 条历史，只能选已完成检查。
+            {zeroOr(
+              total,
+              "暂无历史，只能选已完成检查。",
+              `已载入 ${jobs.length}/${total} 条历史，只能选已完成检查。`,
+            )}
           </small>
           {jobs.length < total && (
             <button

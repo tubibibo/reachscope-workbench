@@ -82,3 +82,8 @@ export const advisoryStatusLabel: Record<string, string> = {
 
 export const advisoryStatusText = (value: string): string =>
   advisoryStatusLabel[value] ?? value;
+
+// Shared zero-total phrasing for “已载入 X / Y …” lines: a 0/0 fraction reads
+// like a bug, so each site states the empty case instead.
+export const zeroOr = (total: number, zero: string, text: string): string =>
+  total === 0 ? zero : text;

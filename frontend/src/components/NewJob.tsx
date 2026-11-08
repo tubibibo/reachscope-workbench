@@ -32,6 +32,7 @@ import { CloudInputPreview } from "./CloudInputPreview";
 import { HostInputPreview } from "./HostInputPreview";
 import { HostPreparation } from "./HostPreparation";
 import { INPUT_LIMITS } from "../lib/workflow-rules";
+import { zeroOr } from "../lib/display-labels";
 
 const samples = [
   ["cross_component", "跨组件传参"],
@@ -625,8 +626,11 @@ export function NewJob({
                       </select>
                     </label>
                     <p className="field-hint">
-                      已载入 {assets.length} / {total}{" "}
-                      个资产，已有文件可直接复用。
+                      {zeroOr(
+                        total,
+                        "暂无已保存资产。",
+                        `已载入 ${assets.length} / ${total} 个资产，已有文件可直接复用。`,
+                      )}
                     </p>
                     {assets.length < total && (
                       <button

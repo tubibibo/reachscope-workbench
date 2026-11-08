@@ -1,6 +1,7 @@
 import { ArrowRight, ChevronDown, Layers3 } from "lucide-react";
 import type { Job, ModuleResult } from "../../lib/types";
 import { readable, records, strings } from "../../lib/types";
+import { gotoSection, statTargets } from "../../lib/section-nav";
 import { sourceOfJob } from "../../lib/inspection-source";
 import { jobConfig } from "../../lib/job-config";
 
@@ -138,38 +139,8 @@ const summaryLabels: Record<string, string> = {
   unknown_checks: "信息不足",
   unsupported_resources: "未覆盖资源",
 };
-// Stat cards only navigate to blocks that actually exist in the same tab;
-// keys without a matching block stay non-interactive (no fake jumps).
-const statTargets: Record<string, Record<string, string>> = {
-  web: {
-    assets: "result-section-assets",
-    checks: "result-section-checks",
-    review_checks: "result-section-checks",
-    paths: "result-section-paths",
-    observations: "result-section-observations",
-  },
-  android: {
-    observations: "result-section-observations",
-  },
-};
-
-function gotoSection(id: string) {
-  // WebResult listens for this to switch its internal panel first
-  // (e.g. 配置检查 lives behind the checks panel); never touch location.hash —
-  // the hash is this app's router.
-  window.dispatchEvent(
-    new CustomEvent("reachscope:goto-section", { detail: id }),
-  );
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      const section = document.getElementById(id);
-      if (!section) return;
-      section.scrollIntoView({ block: "start" });
-      section.focus({ preventScroll: true });
-    });
-  });
-}
-
+// `result-stat` is kept as an explicit test/automation hook for the
+// clickable stat cards (styled via `.result-stats > button`).
 export function ResultSummary({ result }: { result: ModuleResult }) {
   const targets = statTargets[result.module];
   return (

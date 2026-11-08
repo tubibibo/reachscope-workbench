@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, ChevronDown, Globe2 } from "lucide-react";
 import { useDialog } from "../../hooks/useDialog";
 import { api } from "../../lib/api";
+import { GOTO_SECTION_EVENT } from "../../lib/section-nav";
 import type { Data, Job, ModuleResult } from "../../lib/types";
 import {
   isRecord,
@@ -72,8 +73,8 @@ export function WebResult({
     setShown(50);
   }, [search, assetFilter]);
   useEffect(() => {
-    const goto = (event: Event) => {
-      const target = (event as CustomEvent<string>).detail;
+    const goto = (event: WindowEventMap[typeof GOTO_SECTION_EVENT]) => {
+      const target = event.detail;
       if (target === "result-section-checks") setPanel("checks");
       else if (
         target === "result-section-assets" ||
@@ -83,8 +84,8 @@ export function WebResult({
         setPanel("assets");
       }
     };
-    window.addEventListener("reachscope:goto-section", goto);
-    return () => window.removeEventListener("reachscope:goto-section", goto);
+    window.addEventListener(GOTO_SECTION_EVENT, goto);
+    return () => window.removeEventListener(GOTO_SECTION_EVENT, goto);
   }, []);
   return (
     <>

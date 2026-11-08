@@ -68,9 +68,6 @@ export function sourceOfJob(job: Job): InspectionSource {
     job.asset_snapshot?.provenance,
   );
 }
-export function isDemoJob(job: Job): boolean {
-  return sourceOfJob(job).kind === "demo";
-}
 export function matchesSource(
   source: InspectionSource,
   scope: string,
