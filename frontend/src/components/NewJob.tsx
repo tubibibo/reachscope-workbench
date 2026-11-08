@@ -49,13 +49,15 @@ const icons = {
   host: Server,
 };
 // Mirrors the private-address rules enforced by modules/web/scope.py; the
-// backend stays authoritative — this is a discoverability hint only.
+// backend stays authoritative — this is a discoverability hint only. IPv6
+// beyond the ::1 literal and non-global special ranges are intentionally not
+// enumerated here; the backend rejects them with an explicit message.
 function privateTargets(urls: string[]): string[] {
   return urls.filter((url) => {
     try {
-      const host = new URL(url).hostname.toLowerCase();
+      const host = new URL(url).hostname.toLowerCase().replace(/\.$/, "");
       if (host === "localhost" || host.endsWith(".localhost")) return true;
-      if (host === "::1") return true;
+      if (host === "::1" || host === "[::1]") return true;
       const match = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
       if (!match) return false;
       const first = Number(match[1]);
@@ -64,6 +66,7 @@ function privateTargets(urls: string[]): string[] {
         first === 127 ||
         first === 10 ||
         first === 0 ||
+        (first === 100 && second >= 64 && second <= 127) ||
         (first === 192 && second === 168) ||
         (first === 172 && second >= 16 && second <= 31) ||
         (first === 169 && second === 254)

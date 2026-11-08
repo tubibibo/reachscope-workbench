@@ -105,6 +105,11 @@
   display: flex;
   gap: 10px;
 }
+.wizard-footer > span {
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1.8;
+}
 .wizard-footer {
   padding: 20px 32px !important;
   border-top: 1px solid var(--rule);

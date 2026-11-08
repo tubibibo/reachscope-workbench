@@ -117,7 +117,7 @@ def run(base: str, output: Path, executable: Path | None) -> dict[str, Any]:
 
             action = page.get_by_label("从主机证据进入整改", exact=True)
             action.get_by_role("button", name="选择证据建立事项", exact=False).click()
-            action.get_by_role("button", name="建立包含此资产的工作范围", exact=False).click()
+            action.get_by_role("button", name="建立包含此资产的工作区", exact=False).click()
             dialog = page.get_by_role("dialog")
             dialog.get_by_label("工作区名称", exact=True).fill("Controlled host journey")
             dialog.get_by_label("本次目标", exact=True).fill("Controlled offline SSH baseline review")
@@ -132,7 +132,7 @@ def run(base: str, output: Path, executable: Path | None) -> dict[str, Any]:
             choices.select_option(expected["source_ref"])
             create = action.get_by_role("button", name="确认建立整改事项", exact=True)
             expect(create).to_be_disabled()
-            action.get_by_label("确认主机整改工作范围", exact=True).check()
+            action.get_by_label("确认主机整改工作区", exact=True).check()
             # Timing-only browser fixture: the real server commits normally;
             # delay one fetch resolution to exercise duplicate clicks/cancel.
             page.evaluate("""() => {
