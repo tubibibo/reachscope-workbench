@@ -176,7 +176,7 @@ def main() -> int:
                 page.get_by_label("输出预算参数", exact=True).select_option("max_tokens")
                 modified_config = True
                 page.get_by_role("button", name="保存接口设置", exact=True).click()
-                expect(page.get_by_role("status")).to_contain_text("设置已保存")
+                expect(page.locator("p.workspace-success")).to_contain_text("设置已保存")
                 checks.append("AI settings keep the key in the session and save no provider call")
 
                 page.goto(args.base_url + f"/#/jobs/{job_id}")
@@ -188,7 +188,7 @@ def main() -> int:
                 page.get_by_label("AI 研判授权说明", exact=True).fill(f"本机合成网站 {run_tag}，仅授权发送本次已完成检查的脱敏摘要，用于流程验收。")
                 page.get_by_label("确认发送 AI 摘要", exact=True).check()
                 page.get_by_role("button", name="发送摘要并生成研判", exact=True).click()
-                expect(page.get_by_role("status")).to_contain_text("等待兼容接口", timeout=5000)
+                expect(page.locator("p.ai-pending")).to_contain_text("等待兼容接口", timeout=5000)
                 release_provider.set()
                 expect(page.get_by_text("已生成 / 人工待复核", exact=True)).to_be_visible(timeout=15000)
                 expect(page.get_by_text("本机协议模拟：用于验证接口与状态流程", exact=False)).to_be_visible()

@@ -405,7 +405,7 @@ export function CreateWorkspace({
           <div className="workspace-form-content">
             <label className="field">
               <span className="field-label">
-                工作区名称 <small>必填</small>
+                工作区名称 <small aria-hidden="true">必填</small>
               </span>
               <input
                 value={name}
@@ -418,7 +418,7 @@ export function CreateWorkspace({
             </label>
             <label className="field">
               <span className="field-label">
-                本次目标 <small>可选</small>
+                本次目标 <small aria-hidden="true">可选</small>
               </span>
               <textarea
                 value={objective}
@@ -431,7 +431,7 @@ export function CreateWorkspace({
             </label>
             <label className="field">
               <span className="field-label">
-                授权与范围说明 <small>必填</small>
+                授权与范围说明 <small aria-hidden="true">必填</small>
               </span>
               <textarea
                 value={authorization}
