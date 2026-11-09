@@ -26,10 +26,10 @@ Current scope and verification: [project status](docs/releases/project-status.md
 再手动上传、预览并检查。主机结果可沿用既有工作区建立整改事项，按步骤关联修订资料、
 复测和人工关闭。采集失败保持未知；声明的身份和时间不证明运行态。基础能力无需 AI。
 
-![任务详情:证据统计、复核卡片与下一步行动](docs/images/workbench-overview.png)
+![任务详情：证据统计、复核卡片与下一步行动](docs/images/workbench-overview.png)
 
-**60 秒上手**:完成下方快速启动后,打开 **http://127.0.0.1:8765/#/lab** ——
-一个真跑在本机回环上的小站点,零配置,数据不出机器。
+**60 秒上手**：完成下方快速启动后，打开 **http://127.0.0.1:8765/#/lab** ——
+一个真跑在本机回环上的小站点，零配置，数据不出机器。
 
 **Android / Web / Cloud / Host evidence, shared red/blue review and remediation.**
 
@@ -125,7 +125,7 @@ reachscope-workbench doctor --data .workbench
 reachscope-workbench serve --port 8765 --data .workbench
 ```
 
-无需模型账号或 FOFA key,也没有遥测——完整的出站网络行为清单见
+无需模型账号或 FOFA key，也没有遥测——完整的出站网络行为清单见
 [docs/reference/network-behavior.md](docs/reference/network-behavior.md)。
 Web URL 探测会向你明确提交的地址发送 GET 请求；
 选择私网目标需打开表单中的本地/私网选项。离线样例和文件导入不发送探测流量。

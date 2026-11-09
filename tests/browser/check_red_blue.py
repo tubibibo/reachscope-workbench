@@ -85,7 +85,7 @@ def main() -> int:
                     page.screenshot(path=str(output / filename), full_page=True, animations="disabled")
 
                 page.goto(args.base_url + "/#/engagements")
-                page.get_by_role("button", name="新建工作区", exact=True).click()
+                page.get_by_role("button", name="新建工作区", exact=True).first.click()
                 dialog = page.get_by_role("dialog")
                 dialog.get_by_label("工作区名称", exact=False).fill(f"红蓝协作 {tag} / 发布复核")
                 dialog.get_by_label("本次目标", exact=False).fill("以同一网站响应为线索，跟踪配置调整和人工复测。")

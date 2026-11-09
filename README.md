@@ -8,7 +8,10 @@ remediation, and a verified close.**
 > Status: 0.15.0, maintained by one person. Bug reports and feature suggestions
 > are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). The repository begins at
 > 0.14.1 in a single commit — the project was developed privately before
-> publication, and [CHANGELOG.md](CHANGELOG.md) records that history.
+> publication, no earlier version was published here, and
+> [CHANGELOG.md](CHANGELOG.md) records that history. Source comments may
+> reference internal planning identifiers (e.g. PLAN/TASKS IDs) that are not
+> part of this repository.
 
 English | [简体中文](README.zh-CN.md)
 
@@ -98,7 +101,7 @@ Host networking requires Docker Engine on Linux, or Docker Desktop 4.34+ with Li
 The frontend is prebuilt and ships in the repository — no Node.js required.
 No AI key, no scanning API key, no account. No telemetry either — the complete
 outbound network inventory is documented in
-[docs/reference/network-behavior.md](docs/reference/network-behavior.md).
+[docs/reference/network-behavior.md](docs/reference/network-behavior.md) (currently in Chinese).
 
 ## The teaching lab
 
