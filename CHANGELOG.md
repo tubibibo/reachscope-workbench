@@ -1,5 +1,34 @@
 # Changelog
 
+## Workbench 0.15.1 — 2026-11-09
+
+UI polish release: clearer terminology, stronger keyboard and screen-reader
+semantics, and honest empty states. No backend, API, schema or dependency
+changes.
+
+- Terminology: one action vocabulary across the app (新建检查 / 工作区 /
+  添加资产), synced into the browser tests.
+- Display labels: enum codes now show Chinese labels with the raw code as a
+  footnote; export buttons, counts and status codes are localized; zero-count
+  badges are hidden.
+- Workspace form: required/optional markers, a reason line when the submit
+  button is disabled (`role="status"` + `aria-describedby`), and the
+  private-target disclaimer as a persistent hint instead of placeholder text.
+- Accessibility: a shell-level live region for task completion and refresh
+  announcements, visible-focus filtering in dialogs, `aria-controls` on job
+  tabs, and a defined `--line` token (borders had been silently missing since
+  0.14.1) with higher `--muted` contrast and restored focus rings.
+- States: clickable stat cards that switch the inner Web panel before
+  scrolling, a loopback guard in the wizard (private-target warnings, rejected
+  addresses, OUT_OF_SCOPE banner), "采集失败 · 未取得数据" for zero-response
+  jobs, retest no longer clears a half-filled form, and a two-step
+  confirmation for "重新分析".
+- Structure: `App.tsx` split from 1302 to 457 lines into `Overview.tsx`,
+  `JobDetail.tsx` and focused `lib/` modules; behavior preserved.
+- Docs: real screenshots and a "try it in 60 seconds" hook on the project page,
+  a new outbound-network inventory (`docs/reference/network-behavior.md`), and
+  compressed publication disclosure in the English README.
+
 ## Workbench 0.15.0 — 2026-11-06
 
 - Scenario packs: lesson content is now data (a `scenario.yaml` plus static

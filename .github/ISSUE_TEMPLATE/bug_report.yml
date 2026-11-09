@@ -12,7 +12,7 @@ body:
     attributes:
       label: ReachScope Workbench 版本
       description: 运行 `reachscope-workbench --version` 并填写输出。
-      placeholder: 0.15.0
+      placeholder: 0.15.1
     validations:
       required: true
   - type: dropdown

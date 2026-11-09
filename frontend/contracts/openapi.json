@@ -871,7 +871,7 @@
   },
   "info": {
     "title": "ReachScope Workbench",
-    "version": "0.15.0"
+    "version": "0.15.1"
   },
   "openapi": "3.1.0",
   "paths": {
