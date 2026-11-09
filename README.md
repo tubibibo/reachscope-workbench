@@ -6,16 +6,13 @@
 remediation, and a verified close.**
 
 > Status: 0.15.0, maintained by one person. Bug reports and feature suggestions
-> are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
-
-> This repository begins at 0.14.1 in a single commit. The project was developed
-> privately before publication; [CHANGELOG.md](CHANGELOG.md) records that history,
-> and no earlier version was published here. Source comments may reference
-> internal planning identifiers that are not part of this repository.
+> are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). The repository begins at
+> 0.14.1 in a single commit — the project was developed privately before
+> publication, and [CHANGELOG.md](CHANGELOG.md) records that history.
 
 English | [简体中文](README.zh-CN.md)
 
-![Local teaching loop: collect, harden, re-test, close](docs/images/local-teaching.png)
+![The workbench: a job detail with evidence stats, review cards and next actions](docs/images/workbench-overview.png)
 
 ## Why it exists
 
@@ -23,10 +20,19 @@ Most security tools stop at the finding. ReachScope Workbench carries the result
 one step further: the same evidence can enter a remediation workspace, be assigned,
 be re-tested against a comparable condition, and only then be closed by a human.
 
+A re-test is compared against the exact observation it is meant to replace,
+field by field:
+
+![Field-level comparison between a baseline run and the current run](docs/images/retest-compare.png)
+
 Four analysis modules — Android, Web, Cloud, Host — share one job queue, one
 evidence structure, one SQLite workspace and one frontend. A check you run today
-is still there after a restart, and a re-test is compared against the exact
-observation it is meant to replace.
+is still there after a restart.
+
+## Try it in 60 seconds
+
+Run the quick start below, then open **http://127.0.0.1:8765/#/lab** — a real
+site on loopback, nothing to configure, and nothing leaves your machine.
 
 ## Who it is for
 
@@ -90,9 +96,13 @@ Then open **http://127.0.0.1:8765**.
 Host networking requires Docker Engine on Linux, or Docker Desktop 4.34+ with Linux containers and host networking enabled in Settings > Resources > Network. It is incompatible with Enhanced Container Isolation.
 
 The frontend is prebuilt and ships in the repository — no Node.js required.
-No AI key, no scanning API key, no account.
+No AI key, no scanning API key, no account. No telemetry either — the complete
+outbound network inventory is documented in
+[docs/reference/network-behavior.md](docs/reference/network-behavior.md).
 
 ## The teaching lab
+
+![The teaching lab: a deterministic loopback site for collect, harden, re-test, close](docs/images/local-teaching.png)
 
 Open **http://127.0.0.1:8765/#/lab** for a real site running on loopback, and
 walk the whole loop on it: collect a baseline, apply one explicit hardening
