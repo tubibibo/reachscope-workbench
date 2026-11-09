@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ArrowRight, Cloud, ChevronDown } from "lucide-react";
 import type { ModuleResult } from "../../lib/types";
+import { severityLabelText } from "../../lib/display-labels";
 import {
   isRecord,
   readable,
@@ -233,7 +234,9 @@ export function CloudResult({
                         )}
                       </small>
                     </div>
-                    <span className="mono">{readable(item.severity)}</span>
+                    <span className="mono">
+                      {severityLabelText(readable(item.severity))}
+                    </span>
                     <ChevronDown size={14} />
                   </summary>
                   <div className="web-check-body">

@@ -85,11 +85,11 @@ def main() -> int:
                     page.screenshot(path=str(output / filename), full_page=True, animations="disabled")
 
                 page.goto(args.base_url + "/#/engagements")
-                page.get_by_role("button", name="新建工作区", exact=True).click()
+                page.get_by_role("button", name="新建工作区", exact=True).first.click()
                 dialog = page.get_by_role("dialog")
-                dialog.get_by_label("工作区名称", exact=True).fill(f"红蓝协作 {tag} / 发布复核")
-                dialog.get_by_label("本次目标", exact=True).fill("以同一网站响应为线索，跟踪配置调整和人工复测。")
-                dialog.get_by_label("授权与范围说明", exact=True).fill("本机合成站点，仅 GET 已保存地址，不加载资源或执行脚本。")
+                dialog.get_by_label("工作区名称", exact=False).fill(f"红蓝协作 {tag} / 发布复核")
+                dialog.get_by_label("本次目标", exact=False).fill("以同一网站响应为线索，跟踪配置调整和人工复测。")
+                dialog.get_by_label("授权与范围说明", exact=False).fill("本机合成站点，仅 GET 已保存地址，不加载资源或执行脚本。")
                 dialog.get_by_role("checkbox", name=asset["name"]).check()
                 dialog.get_by_role("button", name="建立工作区", exact=True).click()
                 page.wait_for_url("**/#/engagements/*")
@@ -117,7 +117,7 @@ def main() -> int:
                 page.get_by_label("记录截止日期", exact=True).fill("2026-12-01")
                 page.get_by_label("记录本次说明", exact=True).fill("先调整实施型 CSP，再使用同址响应复测。")
                 page.get_by_role("button", name="保存记录", exact=True).click()
-                expect(page.get_by_role("status")).to_contain_text("记录已保存")
+                expect(page.locator("p.workspace-success")).to_contain_text("记录已保存")
                 persisted = request("/api/cases/" + case_id)
                 assert persisted["status"] == "in_progress" and persisted["owner"] == "本地维护负责人"
                 checks.append("blue view persists ownership, deadline, status and a new manual note")
@@ -142,7 +142,7 @@ def main() -> int:
                 expect(page.locator(".retest-outcome")).to_contain_text("本次范围内未再观察到")
                 page.get_by_label("记录本次说明", exact=True).fill("已查看同址后续响应，记录规则匹配结果，等待人工关闭决定。")
                 page.get_by_role("button", name="记录本次复测", exact=True).click()
-                expect(page.get_by_role("status")).to_contain_text("条目状态没有自动关闭")
+                expect(page.locator("p.workspace-success")).to_contain_text("条目状态没有自动关闭")
                 assert request("/api/cases/" + case_id)["status"] == "in_progress"
                 checks.append("completed same-asset retest is comparable and recorded without automatic closure")
 
@@ -152,18 +152,18 @@ def main() -> int:
                 assert request("/api/cases/" + case_id)["status"] == "in_progress"
                 page.get_by_label("记录本次说明", exact=True).fill("已核对实施型 CSP 响应证据及本次检查范围，人工复核后关闭此配置条目。")
                 page.get_by_role("button", name="保存记录", exact=True).click()
-                expect(page.get_by_role("status")).to_contain_text("记录已保存")
+                expect(page.locator("p.workspace-success")).to_contain_text("记录已保存")
                 assert request("/api/cases/" + case_id)["status"] == "resolved"
                 page.get_by_label("记录本次说明", exact=True).fill("已关闭后补充交接说明，保留原来的复测依据。")
                 page.get_by_role("button", name="保存记录", exact=True).click()
-                expect(page.get_by_role("status")).to_contain_text("记录已保存")
+                expect(page.locator("p.workspace-success")).to_contain_text("记录已保存")
                 assert request("/api/cases/" + case_id)["status"] == "resolved"
                 screenshot("blue-retest.png")
                 checks.append("resolution requires new manual rationale and the comparable completed retest")
                 checks.append("editing a resolved record retains its decision without submitting another closure transition")
 
                 with page.expect_download() as download:
-                    page.get_by_role("link", name="工作报告", exact=False).click()
+                    page.get_by_role("link", name="导出报告", exact=False).click()
                 download.value.save_as(output / "workspace-report.html")
                 assert (output / "workspace-report.html").read_text(encoding="utf-8").find("CSP") >= 0
                 page.reload()
@@ -199,13 +199,13 @@ def main() -> int:
                 page.set_viewport_size({"width": 1440, "height": 1000})
                 page.goto(args.base_url + f"/#/engagements/{file_workspace['id']}/cases/{file_case['id']}")
                 page.get_by_role("tab", name="蓝队 · 整改复测", exact=True).click()
-                page.get_by_role("button", name="配置 / 应用有修订文件？", exact=False).click()
+                page.get_by_role("button", name="如何关联修订文件", exact=False).click()
                 expect(page.get_by_label("选择修订输入", exact=True).locator(f"option[value='{revised_asset['id']}']")).to_have_count(1)
                 page.get_by_label("选择修订输入", exact=True).select_option(revised_asset["id"])
                 assert page.get_by_role("button", name="关联修订文件", exact=False).is_disabled()
                 page.get_by_label("修订关联说明", exact=True).fill("人工核对为同一合成资源的新 plan；将公网 CIDR 调整为专用网段。")
                 page.get_by_role("button", name="关联修订文件", exact=False).click()
-                expect(page.get_by_role("status").filter(has_text="修订输入已关联")).to_be_visible()
+                expect(page.locator("p.workspace-success").filter(has_text="修订输入已关联")).to_be_visible()
                 expect(page.get_by_label("选择复测检查", exact=True).locator(f"option[value='{revised_job['id']}']")).to_have_count(1)
                 page.get_by_label("选择复测检查", exact=True).select_option(revised_job["id"])
                 expect(page.locator(".retest-outcome")).to_contain_text("本次使用显式关联的修订输入")

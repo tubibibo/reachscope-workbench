@@ -1,6 +1,7 @@
 import { ArrowRight, ChevronDown, Layers3 } from "lucide-react";
 import type { Job, ModuleResult } from "../../lib/types";
 import { readable, records, strings } from "../../lib/types";
+import { gotoSection, statTargets } from "../../lib/section-nav";
 import { sourceOfJob } from "../../lib/inspection-source";
 import { jobConfig } from "../../lib/job-config";
 
@@ -138,7 +139,10 @@ const summaryLabels: Record<string, string> = {
   unknown_checks: "信息不足",
   unsupported_resources: "未覆盖资源",
 };
+// `result-stat` is kept as an explicit test/automation hook for the
+// clickable stat cards (styled via `.result-stats > button`).
 export function ResultSummary({ result }: { result: ModuleResult }) {
+  const targets = statTargets[result.module];
   return (
     <div className="result-stats">
       {Object.entries(result.summary)
@@ -161,12 +165,29 @@ export function ResultSummary({ result }: { result: ModuleResult }) {
           );
         })
         .slice(0, 8)
-        .map(([key, value]) => (
-          <div key={key}>
-            <span>{summaryLabels[key] || key}</span>
-            <strong>{readable(value)}</strong>
-          </div>
-        ))}
+        .map(([key, value]) => {
+          const label = summaryLabels[key] || key;
+          const target = targets?.[key];
+          const body = (
+            <>
+              <span>{label}</span>
+              <strong>{readable(value)}</strong>
+            </>
+          );
+          return target ? (
+            <button
+              key={key}
+              type="button"
+              className="result-stat"
+              aria-label={`跳转到${label}`}
+              onClick={() => gotoSection(target)}
+            >
+              {body}
+            </button>
+          ) : (
+            <div key={key}>{body}</div>
+          );
+        })}
     </div>
   );
 }

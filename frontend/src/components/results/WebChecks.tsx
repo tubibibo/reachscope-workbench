@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ArrowRight, ChevronDown, ShieldCheck } from "lucide-react";
 import type { Data } from "../../lib/types";
+import { severityLabelText } from "../../lib/display-labels";
 import {
   isRecord,
   readable,
@@ -41,7 +42,11 @@ export function WebChecks({
       (assetId === "all" || textValue(asset.id) === assetId),
   );
   return (
-    <section className="result-section web-checks">
+    <section
+      className="result-section web-checks"
+      id="result-section-checks"
+      tabIndex={-1}
+    >
       <div className="result-section-heading">
         <div>
           <span className="eyebrow">RESPONSE CONFIGURATION</span>
@@ -139,7 +144,7 @@ export function WebChecks({
                     <small>{readable(asset.url || asset.host)}</small>
                   </div>
                   <span className="web-check-severity mono">
-                    {readable(check.severity)}
+                    {severityLabelText(readable(check.severity))}
                   </span>
                   <ChevronDown size={14} />
                 </summary>
@@ -151,7 +156,7 @@ export function WebChecks({
                     </p>
                   )}
                   <details className="raw-record">
-                    <summary>查看检查依据</summary>
+                    <summary>展开检查依据</summary>
                     <JsonData
                       data={
                         isRecord(check.evidence)

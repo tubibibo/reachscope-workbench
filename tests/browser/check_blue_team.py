@@ -25,7 +25,7 @@ def baseline(*, hardened: bool = False, host_id: str = "host-ui-01") -> dict[str
 
 
 def prepare(page: Page, profile: str, name: str, raw: bytes, *, host_id: str = "host-ui-01") -> None:
-    page.get_by_role("button", name="新建分析", exact=True).first.click()
+    page.get_by_role("button", name="新建检查", exact=True).first.click()
     page.locator(".asset-kind-picker button").nth(3).click()
     page.get_by_role("button", name="下一步", exact=True).click()
     page.get_by_label("选择检查方式").select_option(profile)
@@ -133,7 +133,7 @@ def run(base: str, output: Path, executable: Path | None) -> dict[str, Any]:
             assessment = client.get(f"/api/cases/{case['id']}/retest", params={"job_id": corrected["id"]})
             assert assessment.json()["outcome"] == "not_comparable"
             page.goto(base + f"/#/engagements/{eid}/cases/{case['id']}")
-            page.get_by_role("button", name="配置 / 应用有修订文件？", exact=False).click()
+            page.get_by_role("button", name="如何关联修订文件", exact=False).click()
             options = page.get_by_label("选择修订输入", exact=True)
             expect(options.locator(f'option[value="{corrected["asset_id"]}"]')).to_have_count(1)
             options.select_option(corrected["asset_id"])

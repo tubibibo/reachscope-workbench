@@ -49,7 +49,7 @@ def wait_complete(page: Page) -> None:
 def new_task(page: Page, name: str, module: str = "android", mode: str = "demo") -> None:
     global _pending_name
     _pending_name = name
-    page.get_by_role("button", name="新建分析", exact=True).first.click()
+    page.get_by_role("button", name="新建检查", exact=True).first.click()
     page.locator(".asset-kind-picker button").nth(1 if module == "web" else 0).click()
     page.get_by_role("button", name="下一步", exact=True).click()
     profile = "android-demo" if module == "android" else f"website-{mode}"
@@ -121,7 +121,7 @@ def main() -> int:
             checks.append({"name": "evidence, event journal and reproducible input", "passed": True})
 
             with page.expect_download() as download:
-                page.get_by_role("link", name="JSON", exact=True).click()
+                page.get_by_role("link", name="导出 JSON", exact=True).click()
             download.value.save_as(output / "android-export.json")
             exported = json.loads((output / "android-export.json").read_text(encoding="utf-8"))
             assert "android" in json.dumps(exported)
@@ -206,7 +206,7 @@ def main() -> int:
             page.locator(".sidebar nav").get_by_role("button", name="Web", exact=False).click()
             expect(page.locator(".overview-heading h1")).to_contain_text("摸清资产")
             page.screenshot(path=str(output / "mobile.png"), full_page=True)
-            page.get_by_role("button", name="新建分析", exact=True).first.click()
+            page.get_by_role("button", name="新建检查", exact=True).first.click()
             expect(page.get_by_role("dialog")).to_be_visible()
             assert no_overflow(page)
             page.keyboard.press("Escape")

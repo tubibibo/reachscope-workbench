@@ -150,7 +150,7 @@ export function HostCaseAction({ job }: { job: Job }) {
         </button>
       </div>
       <p className="host-note">
-        使用已有验证与整改流程。先明确包含此资产的工作范围，再主动选择保存的证据；未知项可记录待补资料，日志线索不会变成已确认入侵。
+        使用已有验证与整改流程。先明确包含此资产的工作区，再主动选择保存的证据；未知项可记录待补资料，日志线索不会变成已确认入侵。
       </p>
       {expanded && (
         <>
@@ -164,7 +164,7 @@ export function HostCaseAction({ job }: { job: Job }) {
               {notice}
             </p>
           )}
-          {loading && <Loading label="读取可用工作范围…" />}
+          {loading && <Loading label="读取可用工作区…" />}
           <label className="field">
             <span className="field-label">包含本资产的工作区</span>
             <select
@@ -188,7 +188,7 @@ export function HostCaseAction({ job }: { job: Job }) {
               disabled={busy}
               onClick={() => setCreatingScope(true)}
             >
-              建立包含此资产的工作范围 <Plus size={12} />
+              建立包含此资产的工作区 <Plus size={12} />
             </button>
             {workspaces.length < total && (
               <button
@@ -211,7 +211,7 @@ export function HostCaseAction({ job }: { job: Job }) {
               <label className="host-scope-confirm">
                 <input
                   type="checkbox"
-                  aria-label="确认主机整改工作范围"
+                  aria-label="确认主机整改工作区"
                   checked={confirmed}
                   disabled={busy}
                   onChange={(event) => setConfirmed(event.target.checked)}

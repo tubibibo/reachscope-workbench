@@ -71,7 +71,7 @@ def run(base: str, output: Path, executable: Path | None) -> dict[str, Any]:
                 if request.method == "POST" and "/advisory" in request.url else None)
         try:
             page.goto(base + "/#/modules/host")
-            page.get_by_role("button", name="新建分析", exact=True).first.click()
+            page.get_by_role("button", name="新建检查", exact=True).first.click()
             page.locator(".asset-kind-picker button").nth(3).click()
             page.get_by_role("button", name="下一步", exact=True).click()
             page.get_by_label("选择检查方式").select_option("host-baseline")
@@ -117,11 +117,11 @@ def run(base: str, output: Path, executable: Path | None) -> dict[str, Any]:
 
             action = page.get_by_label("从主机证据进入整改", exact=True)
             action.get_by_role("button", name="选择证据建立事项", exact=False).click()
-            action.get_by_role("button", name="建立包含此资产的工作范围", exact=False).click()
+            action.get_by_role("button", name="建立包含此资产的工作区", exact=False).click()
             dialog = page.get_by_role("dialog")
-            dialog.get_by_label("工作区名称", exact=True).fill("Controlled host journey")
-            dialog.get_by_label("本次目标", exact=True).fill("Controlled offline SSH baseline review")
-            dialog.get_by_label("授权与范围说明", exact=True).fill("Operator-owned controlled fixture only; no live host or network target.")
+            dialog.get_by_label("工作区名称", exact=False).fill("Controlled host journey")
+            dialog.get_by_label("本次目标", exact=False).fill("Controlled offline SSH baseline review")
+            dialog.get_by_label("授权与范围说明", exact=False).fill("Operator-owned controlled fixture only; no live host or network target.")
             expect(dialog.locator('.scope-asset-options input[type="checkbox"]:checked')).to_have_count(1)
             dialog.get_by_role("button", name="建立工作区", exact=True).click()
             expect(dialog).to_have_count(0)
@@ -132,7 +132,7 @@ def run(base: str, output: Path, executable: Path | None) -> dict[str, Any]:
             choices.select_option(expected["source_ref"])
             create = action.get_by_role("button", name="确认建立整改事项", exact=True)
             expect(create).to_be_disabled()
-            action.get_by_label("确认主机整改工作范围", exact=True).check()
+            action.get_by_label("确认主机整改工作区", exact=True).check()
             # Timing-only browser fixture: the real server commits normally;
             # delay one fetch resolution to exercise duplicate clicks/cancel.
             page.evaluate("""() => {

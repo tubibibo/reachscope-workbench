@@ -105,6 +105,11 @@
   display: flex;
   gap: 10px;
 }
+.wizard-footer > span {
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1.8;
+}
 .wizard-footer {
   padding: 20px 32px !important;
   border-top: 1px solid var(--rule);
@@ -586,4 +591,14 @@
   overflow-wrap: anywhere;
   margin-top: 5px;
   font-size: 10px;
+}
+
+.wizard-warning {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #e0c3ad;
+  background: #f8ede3;
+  color: #96492f;
+  font-size: 10px;
+  line-height: 1.7;
 }

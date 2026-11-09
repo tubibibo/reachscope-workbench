@@ -8,6 +8,7 @@ import type {
   AdvisoryReport as SavedReport,
 } from "../../ai/types";
 import { dateLabel } from "../../lib/types";
+import { advisoryStatusText } from "../../lib/display-labels";
 import { ErrorBox, Loading } from "../Common";
 import { JsonData } from "../results/JsonData";
 import { AdvisoryReport } from "./AdvisoryReport";
@@ -425,7 +426,7 @@ export function WebAdvisory({
                       <small>{item.provider.base_url}</small>
                     </span>
                     <span>
-                      {item.status}
+                      {advisoryStatusText(item.status)}
                       <small>{dateLabel(item.created_at)}</small>
                     </span>
                     <ArrowRight size={13} />

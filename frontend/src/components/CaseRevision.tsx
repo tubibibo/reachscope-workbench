@@ -5,6 +5,7 @@ import type { Asset, ReviewCase } from "../lib/types";
 import { Loading } from "./Common";
 import { Failure } from "./CollaborationShared";
 import { supportsRevisionLink } from "../lib/workflow-rules";
+import { zeroOr } from "../lib/display-labels";
 
 export function RevisionInput({
   item,
@@ -112,7 +113,7 @@ export function RevisionInput({
         aria-expanded={expanded}
         onClick={() => setExpanded(!expanded)}
       >
-        配置 / 应用有修订文件？ <Plus size={13} />
+        如何关联修订文件？（说明） <Plus size={13} />
       </button>
       {expanded && (
         <>
@@ -141,8 +142,11 @@ export function RevisionInput({
                 </select>
               </label>
               <small>
-                已载入 {assets.length}/{total}{" "}
-                个资产。这里只提供同一输入方式的文件；资源身份与修改说明仍需人工核对。
+                {zeroOr(
+                  total,
+                  "暂无同输入方式的资产。",
+                  `已载入 ${assets.length}/${total} 个资产。这里只提供同一输入方式的文件；资源身份与修改说明仍需人工核对。`,
+                )}
               </small>
               {assets.length < total && (
                 <button

@@ -140,6 +140,14 @@
   padding: 14px 12px;
   border-bottom: 1px solid var(--line);
 }
+.scope-asset-option input[type="checkbox"] {
+  width: auto;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  accent-color: var(--green);
+}
 .scope-asset-option.selected {
   background: #e9eddf;
 }
@@ -471,9 +479,6 @@
   overflow-wrap: anywhere;
   margin: 10px 0;
 }
-.case-evidence .json-data {
-  max-height: 440px;
-}
 .case-edit .field,
 .retest-section .field {
   margin: 18px 0;
@@ -708,5 +713,19 @@
   .case-row,
   .team-switch button {
     transition: none;
+  }
+}
+
+.form-footer-notes {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+@media (max-width: 700px) {
+  .form-footer-notes small {
+    font-size: 10px;
   }
 }

@@ -10,6 +10,12 @@ import {
   X,
 } from "lucide-react";
 import { api } from "../lib/api";
+import {
+  confidenceLabelText,
+  severityLabelText,
+  zeroOr,
+} from "../lib/display-labels";
+import { RawCode } from "./Common";
 import type {
   Asset,
   Candidate,
@@ -246,14 +252,16 @@ function WorkspaceList({
           action={
             !search && (
               <button className="button" onClick={() => setCreating(true)}>
-                创建第一个工作区 <ArrowRight size={15} />
+                新建工作区 <ArrowRight size={15} />
               </button>
             )
           }
         />
       )}
       <p className="load-scope">
-        已载入 {items.length} / {total} 个工作区
+        {total === 0
+          ? "共 0 个工作区"
+          : `已载入 ${items.length} / ${total} 个工作区`}
       </p>
       {items.length < total && (
         <button
@@ -298,6 +306,10 @@ export function CreateWorkspace({
     [name, setName] = useState(""),
     [objective, setObjective] = useState(""),
     [authorization, setAuthorization] = useState("");
+  const missing: string[] = [];
+  if (!name.trim()) missing.push("工作区名称");
+  if (!authorization.trim()) missing.push("授权与范围说明");
+  if (!selected.length) missing.push("至少一个资产");
   const busyRef = useRef(false),
     request = useRef<{ signature: string; key: string } | null>(null);
   const ref = useDialog(true, () => {
@@ -373,8 +385,8 @@ export function CreateWorkspace({
       >
         <header className="panel-heading">
           <div>
-            <span className="eyebrow">NEW WORKSPACE / 检查范围</span>
-            <h2 id="create-workspace-title">建立共同的工作范围</h2>
+            <span className="eyebrow">NEW WORKSPACE / 工作区</span>
+            <h2 id="create-workspace-title">建立共同的工作区</h2>
           </div>
           <button
             className="icon-button"
@@ -392,7 +404,9 @@ export function CreateWorkspace({
         >
           <div className="workspace-form-content">
             <label className="field">
-              <span className="field-label">工作区名称</span>
+              <span className="field-label">
+                工作区名称 <small aria-hidden="true">必填</small>
+              </span>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
@@ -403,7 +417,9 @@ export function CreateWorkspace({
               />
             </label>
             <label className="field">
-              <span className="field-label">本次目标</span>
+              <span className="field-label">
+                本次目标 <small aria-hidden="true">可选</small>
+              </span>
               <textarea
                 value={objective}
                 onChange={(event) => setObjective(event.target.value)}
@@ -414,7 +430,9 @@ export function CreateWorkspace({
               />
             </label>
             <label className="field">
-              <span className="field-label">授权与范围说明</span>
+              <span className="field-label">
+                授权与范围说明 <small aria-hidden="true">必填</small>
+              </span>
               <textarea
                 value={authorization}
                 onChange={(event) => setAuthorization(event.target.value)}
@@ -422,12 +440,16 @@ export function CreateWorkspace({
                 rows={3}
                 required
                 disabled={busy}
-                placeholder="记录资产归属、授权依据与检查边界。此处是工作记录，不是外部授权证明。"
+                placeholder="例如：自有站点，内网授权，仅检查响应头"
               />
+              <small className="field-hint">
+                记录资产归属、授权依据与检查边界。此处是工作记录，不是外部授权证明。
+              </small>
             </label>
             <div className="field">
               <span className="field-label">
-                范围内资产 <small>已选 {selected.length} / 100</small>
+                范围内资产{" "}
+                <small>必填 · 已选 {selected.length} 个（上限 100）</small>
               </span>
               {initialAssetId && (
                 <p className="scope-note">
@@ -487,7 +509,9 @@ export function CreateWorkspace({
                 </div>
               )}
               <small className="load-scope">
-                已载入 {assets.length}/{total} 个资产。范围在创建后固定。
+                {total === 0
+                  ? "暂无已保存资产。"
+                  : `已载入 ${assets.length}/${total} 个资产。范围在创建后固定。`}
               </small>
               {assets.length < total && (
                 <button
@@ -503,16 +527,25 @@ export function CreateWorkspace({
             <Failure value={error} />
           </div>
           <footer className="form-footer">
-            <small>使用已保存的资产，不启动任何新探测。</small>
+            <div className="form-footer-notes">
+              <small>使用已保存的资产，不启动任何新探测。</small>
+              <small
+                className="field-hint"
+                role="status"
+                id="workspace-submit-missing"
+              >
+                {missing.length > 0
+                  ? `还需完成：${missing.join("、")}`
+                  : "信息完整，可以建立工作区。"}
+              </small>
+            </div>
             <button
               className="button button-primary"
               type="submit"
-              disabled={
-                busy ||
-                !name.trim() ||
-                !authorization.trim() ||
-                !selected.length
+              aria-describedby={
+                missing.length > 0 ? "workspace-submit-missing" : undefined
               }
+              disabled={busy || missing.length > 0}
             >
               {busy ? "正在保存…" : "建立工作区"}
               <ArrowRight size={15} />
@@ -625,14 +658,15 @@ function Workspace({
             download
           >
             <FileDown size={14} />
-            JSON
+            导出 JSON
           </a>
           <a
             className="button"
             href={api.engagementExportUrl(id, "html")}
             download
           >
-            工作报告 ↗
+            <FileDown size={14} />
+            导出报告（HTML）
           </a>
         </div>
       </section>
@@ -752,7 +786,16 @@ function Workspace({
                       {item.asset_name} · {item.job_name}
                     </small>
                     <span className="case-confidence">
-                      {item.severity} / {item.confidence}
+                      {severityLabelText(item.severity)}
+                      <RawCode
+                        value={item.severity}
+                        text={severityLabelText(item.severity)}
+                      />{" "}
+                      / {confidenceLabelText(item.confidence)}
+                      <RawCode
+                        value={item.confidence}
+                        text={confidenceLabelText(item.confidence)}
+                      />
                     </span>
                   </div>
                   {view === "blue" ? (
@@ -787,7 +830,11 @@ function Workspace({
             />
           )}
           <p className="load-scope">
-            已载入 {cases.length}/{total} 条记录；筛选作用于已载入记录。
+            {zeroOr(
+              total,
+              "共 0 条记录。",
+              `已载入 ${cases.length}/${total} 条记录；筛选作用于已载入记录。`,
+            )}
           </p>
           {cases.length < total && (
             <button
@@ -987,7 +1034,11 @@ function AddCandidate({
             </select>
           </label>
           <small className="load-scope">
-            已载入 {jobs.length}/{total} 条历史，只能选已完成检查。
+            {zeroOr(
+              total,
+              "暂无历史，只能选已完成检查。",
+              `已载入 ${jobs.length}/${total} 条历史，只能选已完成检查。`,
+            )}
           </small>
           {jobs.length < total && (
             <button
@@ -1012,7 +1063,16 @@ function AddCandidate({
                 {candidates.map((item) => (
                   <article key={`${item.source_kind}-${item.source_ref}`}>
                     <span className="eyebrow">
-                      {item.severity} / {item.confidence}
+                      {severityLabelText(item.severity)}
+                      <RawCode
+                        value={item.severity}
+                        text={severityLabelText(item.severity)}
+                      />{" "}
+                      / {confidenceLabelText(item.confidence)}
+                      <RawCode
+                        value={item.confidence}
+                        text={confidenceLabelText(item.confidence)}
+                      />
                     </span>
                     <h3>{item.title}</h3>
                     <p>{item.description}</p>

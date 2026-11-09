@@ -326,7 +326,7 @@ export const readable = (value: unknown): string =>
       : String(value);
 export const textValue = (value: unknown): string =>
   typeof value === "string" ? value : "";
-export const statusLabel: Record<Status, string> = {
+const statusLabel: Record<Status, string> = {
   queued: "等待执行",
   running: "分析中",
   completed: "已完成",

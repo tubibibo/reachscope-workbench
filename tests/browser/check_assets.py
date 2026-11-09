@@ -65,7 +65,7 @@ def main() -> int:
             page.on("pageerror", lambda error: errors.append(str(error)))
             page.goto(args.base_url + "/#/assets")
             expect(page.locator(".overview-heading h1")).to_contain_text("选好对象")
-            page.get_by_role("button", name="新建分析", exact=True).click()
+            page.get_by_role("button", name="新建检查", exact=True).first.click()
             page.locator(".asset-kind-picker button").nth(2).click()
             screenshot(page, "wizard-1.png")
             next_step(page)
@@ -115,7 +115,7 @@ def main() -> int:
             screenshot(page, "asset-history.png")
             checks.append("saved cloud asset is reused with different checks and retains both jobs")
 
-            page.get_by_role("button", name="新建分析", exact=True).click()
+            page.get_by_role("button", name="新建检查", exact=True).first.click()
             page.locator(".asset-kind-picker button").nth(1).click()
             next_step(page)
             page.get_by_label("选择检查方式").select_option("website-probe")
@@ -135,7 +135,7 @@ def main() -> int:
             assert not set(record) & {"cookies", "tls", "page", "checks"}
             checks.append("website wizard controls actual HTTP-only execution")
 
-            page.get_by_role("button", name="新建分析", exact=True).click()
+            page.get_by_role("button", name="新建检查", exact=True).first.click()
             page.locator(".asset-kind-picker button").nth(2).click()
             next_step(page)
             page.get_by_label("选择检查方式").select_option("cloud-config")
@@ -152,7 +152,7 @@ def main() -> int:
             screenshot(page, "assets.png")
             page.set_viewport_size({"width": 390, "height": 844})
             assert page.evaluate("Math.max(document.body.scrollWidth,document.documentElement.scrollWidth)<=innerWidth+1")
-            page.get_by_role("button", name="新建分析", exact=True).click()
+            page.get_by_role("button", name="新建检查", exact=True).first.click()
             expect(page.get_by_role("dialog")).to_be_visible()
             page.keyboard.press("Tab")
             assert page.get_by_role("dialog").evaluate("element=>element.contains(document.activeElement)")

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, ChevronDown, Globe2 } from "lucide-react";
 import { useDialog } from "../../hooks/useDialog";
 import { api } from "../../lib/api";
+import { GOTO_SECTION_EVENT } from "../../lib/section-nav";
 import type { Data, Job, ModuleResult } from "../../lib/types";
 import {
   isRecord,
@@ -71,6 +72,21 @@ export function WebResult({
   useEffect(() => {
     setShown(50);
   }, [search, assetFilter]);
+  useEffect(() => {
+    const goto = (event: WindowEventMap[typeof GOTO_SECTION_EVENT]) => {
+      const target = event.detail;
+      if (target === "result-section-checks") setPanel("checks");
+      else if (
+        target === "result-section-assets" ||
+        target === "result-section-observations" ||
+        target === "result-section-paths"
+      ) {
+        setPanel("assets");
+      }
+    };
+    window.addEventListener(GOTO_SECTION_EVENT, goto);
+    return () => window.removeEventListener(GOTO_SECTION_EVENT, goto);
+  }, []);
   return (
     <>
       <div className="web-workspace-nav">
@@ -145,7 +161,24 @@ export function WebResult({
           ))}
         {panel === "assets" && (
           <>
-            <section className="result-section">
+            <section
+              className="result-section"
+              id="result-section-assets"
+              tabIndex={-1}
+            >
+              {assets.length > 0 &&
+                assets.every((asset) =>
+                  String(
+                    isRecord(asset.error)
+                      ? textValue(asset.error.message)
+                      : readable(asset.error),
+                  ).includes("outside the selected network scope"),
+                ) && (
+                  <p className="scope-note" role="alert">
+                    本次目标因内网限制未采集：目标属于本机/内网地址。请在“新建检查”第
+                    2 步勾选「包含我的本机或内网地址」后重新分析。
+                  </p>
+                )}
               <div className="result-section-heading">
                 <div>
                   <span className="eyebrow">ASSET INVENTORY</span>
@@ -403,7 +436,7 @@ export function WebResult({
 function CandidatePaths({ paths }: { paths: Data[] }) {
   const [limit, setLimit] = useState(10);
   return (
-    <section className="result-section">
+    <section className="result-section" id="result-section-paths" tabIndex={-1}>
       <div className="result-section-heading">
         <div>
           <span className="eyebrow">INVESTIGATION HYPOTHESES</span>

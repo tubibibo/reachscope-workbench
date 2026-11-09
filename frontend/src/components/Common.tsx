@@ -38,7 +38,11 @@ export function ErrorBox({
           </details>
         )}
       </div>
-      {retry && <button onClick={retry}>重试 ↗</button>}
+      {retry && (
+        <button type="button" onClick={retry}>
+          重试 ↗
+        </button>
+      )}
     </div>
   );
 }
@@ -49,6 +53,10 @@ export function Loading({ label = "正在读取…" }: { label?: string }) {
       {label}
     </div>
   );
+}
+export function RawCode({ value, text }: { value: string; text: string }) {
+  if (value === text) return null;
+  return <code className="raw-code">{value}</code>;
 }
 export function Empty({
   title,
@@ -65,25 +73,6 @@ export function Empty({
       <h3>{title}</h3>
       <p>{detail}</p>
       {action}
-    </div>
-  );
-}
-export function SectionTitle({
-  label,
-  title,
-  trailing,
-}: {
-  label: string;
-  title: string;
-  trailing?: ReactNode;
-}) {
-  return (
-    <div className="section-title">
-      <div>
-        <span className="eyebrow">{label}</span>
-        <h2>{title}</h2>
-      </div>
-      {trailing}
     </div>
   );
 }

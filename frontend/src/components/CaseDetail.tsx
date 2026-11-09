@@ -15,6 +15,13 @@ import type {
   ReviewCase,
 } from "../lib/types";
 import { dateLabel, isRecord } from "../lib/types";
+import {
+  confidenceLabelText,
+  evidenceKindText,
+  severityLabelText,
+  zeroOr,
+} from "../lib/display-labels";
+import { RawCode } from "./Common";
 import { jobConfig } from "../lib/job-config";
 import {
   canCloseCase,
@@ -72,7 +79,8 @@ export function CaseDetail({
     [eventsError, setEventsError] = useState<unknown>(null);
   const busyRef = useRef(false),
     request = useRef<{ signature: string; key: string } | null>(null),
-    eventRequest = useRef<AbortController | null>(null);
+    eventRequest = useRef<AbortController | null>(null),
+    syncedCase = useRef<string | null>(null);
   const [revisionRequest, setRevisionRequest] = useState(0);
   useEffect(() => {
     eventRequest.current?.abort();
@@ -124,10 +132,15 @@ export function CaseDetail({
           if (value.engagement_id !== engagementId)
             throw new Error("记录不属于当前工作区。");
           setItem(value);
-          setStatus(value.status);
-          setOwner(value.owner);
-          setDue(value.due_date);
-          setNote("");
+          // Only seed the form on first load of this case; refetches
+          // (revision bumps from 刷新历史/发起复测) must not wipe in-progress notes.
+          if (syncedCase.current !== value.id) {
+            setStatus(value.status);
+            setOwner(value.owner);
+            setDue(value.due_date);
+            setNote("");
+            syncedCase.current = value.id;
+          }
         }
       })
       .catch((failure) => {
@@ -228,7 +241,11 @@ export function CaseDetail({
     ) {
       setError(
         new Error(
-          "关闭前请选择同一资产的可比复测，并确认本次未再观察到该条件。",
+          !retestId
+            ? "关闭前请先在「使用后续检查复测」中选择同一资产的复测检查。"
+            : retest?.outcome === "still_observed"
+              ? "所选复测仍观察到该条件，不能作为关闭依据；修复需要「范围内未再观察到该条件」的复测结果。"
+              : "所选复测不能作为可比复测，无法作为关闭依据；请重新发起复测，确认范围内未再观察到该条件。",
         ),
       );
       return;
@@ -350,12 +367,21 @@ export function CaseDetail({
       <div className="case-detail-heading">
         <div>
           <span className="eyebrow">
-            {view === "red" ? "EVIDENCE REVIEW" : "REMEDIATION & RETEST"} /{" "}
+            {view === "red" ? "EVIDENCE REVIEW" : "整改与复测"} /{" "}
             {item.id.slice(0, 8)}
           </span>
           <h2>{item.title}</h2>
           <p>
-            {item.asset_name} · {item.severity} / {item.confidence}
+            {item.asset_name} · {severityLabelText(item.severity)}
+            <RawCode
+              value={item.severity}
+              text={severityLabelText(item.severity)}
+            />{" "}
+            / {confidenceLabelText(item.confidence)}
+            <RawCode
+              value={item.confidence}
+              text={confidenceLabelText(item.confidence)}
+            />
           </p>
         </div>
         <span className={`case-state case-${item.status}`}>
@@ -406,7 +432,13 @@ export function CaseDetail({
                 <details className="case-evidence" key={evidence.id}>
                   <summary>
                     {evidence.title}
-                    <span>{evidence.kind}</span>
+                    <span>
+                      {evidenceKindText(evidence.kind)}
+                      <RawCode
+                        value={evidence.kind}
+                        text={evidenceKindText(evidence.kind)}
+                      />
+                    </span>
                   </summary>
                   <small>{evidence.source}</small>
                   <code>{evidence.id}</code>
@@ -574,7 +606,11 @@ export function CaseDetail({
               </select>
             </label>
             <small className="load-scope">
-              已载入 {jobs.length}/{jobTotal} 条历史。
+              {zeroOr(
+                jobTotal,
+                "暂无历史。",
+                `已载入 ${jobs.length}/${jobTotal} 条历史。`,
+              )}
             </small>
             {jobs.length < jobTotal && (
               <button
